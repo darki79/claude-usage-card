@@ -6,7 +6,7 @@
  * License: MIT
  */
 (() => {
-  const CARD_VERSION = "1.0.0";
+  const CARD_VERSION = "1.0.1";
   const CARD_TAG = "claude-usage-card";
   const EDITOR_TAG = "claude-usage-card-editor";
   const INTEGRATION_DOMAIN = "hass_claude_usage";

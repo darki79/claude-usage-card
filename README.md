@@ -2,7 +2,7 @@
 
 A Lovelace card that shows your Claude subscription limits (5-hour session, weekly limits, per-model limits, extra usage) as bars or rings, with a countdown to each reset.
 
-![Claude Usage Card: default, terminal, retro and synthwave styles](docs/images/overview.png)
+![Claude Usage Card: default, terminal, retro and synthwave styles](https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/overview.png)
 
 The card only reads sensors. The data comes from the **[Claude Usage integration](https://github.com/trickv/hass-claude-usage)**, which you need to install first.
 
@@ -60,7 +60,7 @@ All screenshots below use the same data: session 46 %, weekly 63 %, Opus 88 %.
 
 Stacked bars that follow your Home Assistant theme. Shown here with the optional mini history.
 
-<img src="docs/images/bars.png" alt="Bars layout" width="400">
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/bars.png" alt="Bars layout" width="400">
 
 ```yaml
 type: custom:claude-usage-card
@@ -72,7 +72,7 @@ history_hours: 6
 
 Bars side by side, one column per limit. Good for wide cards.
 
-<img src="docs/images/columns.png" alt="Columns layout" width="520">
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/columns.png" alt="Columns layout" width="520">
 
 ```yaml
 type: custom:claude-usage-card
@@ -81,7 +81,7 @@ layout: columns
 
 ### Rings
 
-<img src="docs/images/rings.png" alt="Rings layout" width="460">
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/rings.png" alt="Rings layout" width="460">
 
 ```yaml
 type: custom:claude-usage-card
@@ -92,7 +92,7 @@ layout: rings
 
 One compact line per limit with percentage and time to reset. A warning icon appears when the forecast says the limit will be reached before the reset.
 
-<img src="docs/images/minimal.png" alt="Minimal style" width="360">
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/minimal.png" alt="Minimal style" width="360">
 
 ```yaml
 type: custom:claude-usage-card
@@ -104,7 +104,7 @@ title: Claude
 
 Amber CRT look with scanlines and the embedded pixel font.
 
-<img src="docs/images/terminal.png" alt="Terminal skin" width="380">
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/terminal.png" alt="Terminal skin" width="380">
 
 ```yaml
 type: custom:claude-usage-card
@@ -115,7 +115,7 @@ style: terminal
 
 A 90s desktop window with segmented progress bars.
 
-<img src="docs/images/retro.png" alt="Retro window skin" width="380">
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/retro.png" alt="Retro window skin" width="380">
 
 ```yaml
 type: custom:claude-usage-card
@@ -126,7 +126,7 @@ style: retro
 
 Neon sunset with a perspective grid.
 
-<img src="docs/images/synthwave.png" alt="Synthwave skin" width="380">
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/synthwave.png" alt="Synthwave skin" width="380">
 
 ```yaml
 type: custom:claude-usage-card

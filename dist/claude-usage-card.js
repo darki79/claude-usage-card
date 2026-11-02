@@ -6,7 +6,7 @@
  * License: MIT
  */
 (() => {
-  const CARD_VERSION = "1.0.1";
+  const CARD_VERSION = "1.0.2";
   const CARD_TAG = "claude-usage-card";
   const EDITOR_TAG = "claude-usage-card-editor";
   const INTEGRATION_DOMAIN = "hass_claude_usage";
@@ -379,7 +379,16 @@
         clearTimeout(this._holdT);
         this._release();
       });
-      root.addEventListener("pointerleave", () => clearTimeout(this._holdT));
+      // pointerleave does not bubble: listen in the capture phase, react only to the pressed item
+      root.addEventListener(
+        "pointerleave",
+        (ev) => {
+          if (!ev.target.dataset || ev.target.dataset.entity !== this._downId) return;
+          clearTimeout(this._holdT);
+          this._release();
+        },
+        true
+      );
       root.addEventListener("contextmenu", (ev) => {
         if (this._hasAction("hold_action")) ev.preventDefault();
       });
@@ -409,6 +418,8 @@
         throw new Error(`style must be one of: ${STYLES.join(", ")}`);
       if (config.entities && !Array.isArray(config.entities))
         throw new Error("entities must be a list");
+      // keys the user actually set: a skin may only override the logo color when it is unset
+      this._userConfig = config;
       this._config = { ...DEFAULTS, ...config };
       this._sig = "";
       this._html = "";
@@ -703,24 +714,12 @@
       return `${h}h ${m}m`;
     }
 
-    _resetText(resetsAt, S) {
-      return this._resetParts(resetsAt, S).join(" · ");
-    }
-
     _resetParts(resetsAt, S) {
       if (!resetsAt) return [];
       const t = new Date(resetsAt);
       if (isNaN(t.getTime())) return [];
       const diff = t.getTime() - Date.now();
-      const lang = langOf(this._hass);
-      const tz = this._hass && this._hass.config && this._hass.config.time_zone;
-      const opts = { weekday: "short", hour: "2-digit", minute: "2-digit" };
-      let abs;
-      try {
-        abs = t.toLocaleString(lang, tz ? { ...opts, timeZone: tz } : opts);
-      } catch (e) {
-        abs = t.toLocaleString(lang, opts);
-      }
+      const abs = this._fmtAbs(t);
       const rel = diff <= 0 ? S.resets_now : fmt(S.resets_in, { t: this._duration(diff, S) });
       const mode = this._config.reset_display;
       if (mode === "absolute") return [abs];
@@ -749,6 +748,7 @@
           const left = new Date(resetsAt).getTime() - Date.now();
           if (Number.isFinite(left)) pace = Math.min(100, Math.max(0, (1 - left / windowMs) * 100));
         }
+        const resetParts = this._resetParts(resetsAt, S);
         const it = {
           id,
           kind,
@@ -759,8 +759,8 @@
           value,
           color: this._color(value, st && st.attributes.severity),
           resetsAt,
-          reset: this._resetText(resetsAt, S),
-          resetParts: this._resetParts(resetsAt, S),
+          reset: resetParts.join(" · "),
+          resetParts,
         };
         it.forecast = this._forecast(it, S);
         return it;
@@ -1234,14 +1234,6 @@
       this.dispatchEvent(ev);
     }
   }
-
-  // Remember which keys the user actually set (needed to know if a skin may
-  // override the logo color with its own palette).
-  const origSetConfig = ClaudeUsageCard.prototype.setConfig;
-  ClaudeUsageCard.prototype.setConfig = function (config) {
-    this._userConfig = config || {};
-    return origSetConfig.call(this, config);
-  };
 
   const CSS = `
     :host { display: block; }

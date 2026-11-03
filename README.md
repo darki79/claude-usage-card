@@ -28,16 +28,17 @@ The card only reads sensors. The data comes from the **[Claude Usage integration
 
 ## Requirements
 
-- Home Assistant with the **[Claude Usage integration](https://github.com/trickv/hass-claude-usage)** installed and set up. It is a custom integration and is available through HACS as a custom repository. This card shows nothing without it.
+- Home Assistant with the **[Claude Usage integration](https://github.com/trickv/hass-claude-usage)** installed and set up. Search for **Claude Usage** in HACS to install it. This card shows nothing without it.
 - The recorder (enabled by default) for the forecast and the mini history.
 
 ## Installation
 
 ### HACS
 
-1. HACS → three-dot menu → **Custom repositories** → add this repository's URL, type **Dashboard**
-2. Search for **Claude Usage Card** and download it
-3. Reload the browser
+1. Open HACS, search for **Claude Usage Card** and download it
+2. Reload the browser
+
+If the card does not show up in the search, add it as a custom repository first: HACS → three-dot menu → **Custom repositories** → add this repository's URL, type **Dashboard**.
 
 ### Manual
 

@@ -99,6 +99,23 @@ cases.push({ style: "default", show_title: false, show_logo: false, show_pace: f
     }
   }
 
+  // colors from the config are escaped in every skin
+  for (const style of STYLES) {
+    const card = new Card();
+    card.setConfig({ style, status_colors: true, color_mode: "severity", color_ok: 'red"><b id="x">' });
+    card.hass = hassFor("en", false);
+    assert.ok(!card.shadowRoot.innerHTML.includes('<b id="x">'), `${style}: color is escaped`);
+    card.disconnectedCallback();
+  }
+
+  // switching the theme between light and dark re-renders cupertino
+  const cup = new Card();
+  cup.setConfig({ style: "cupertino" });
+  cup.hass = hassFor("en", false);
+  cup.hass = hassFor("en", true);
+  assert.ok(cup.shadowRoot.innerHTML.includes("cu-dark"), "cupertino follows dark mode");
+  cup.disconnectedCallback();
+
   // the card rejects unknown styles
   assert.throws(() => new Card().setConfig({ style: "nope" }));
 

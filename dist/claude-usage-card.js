@@ -291,7 +291,7 @@
       custom = mode;
       mode = "custom";
     }
-    if (mode === "auto") mode = ["retro", "paper", "cupertino", "shell", "material", "matrix", "eink"].includes(c.style) ? "classic" : "pixel";
+    if (mode === "auto") mode = ["terminal", "synthwave"].includes(c.style) ? "pixel" : "classic";
     if (mode === "pixel") return { family: `'${FONT_FAMILY}', 'VT323', ui-monospace, monospace`, pixel: true };
     if (mode === "theme") return { family: "inherit", pixel: false };
     if (mode === "monospace")
@@ -345,7 +345,7 @@
       const cx = x % 6;
       return cx < 5 && !!(g[y] & (16 >> cx));
     });
-    return `<svg class="${cls}" viewBox="0 0 ${cols} 7" style="--dc:${color}" role="img" aria-label="${esc(text)}"><path class="dm-off" d="${off}"/><path class="dm-on" d="${on}"/></svg>`;
+    return `<svg class="${cls}" viewBox="0 0 ${cols} 7" style="--dc:${esc(color)}" role="img" aria-label="${esc(text)}"><path class="dm-off" d="${off}"/><path class="dm-on" d="${on}"/></svg>`;
   };
   // Apple-style semantic system colors, light and dark variants
   const CUP = {
@@ -731,7 +731,7 @@
               ? `${id}=${s.state}|${s.attributes.resets_at || ""}|${s.attributes.severity || ""}`
               : id;
           })
-          .join(";") + `|${langOf(this._hass)}`
+          .join(";") + `|${langOf(this._hass)}|${!!(this._hass.themes && this._hass.themes.darkMode)}`
       );
     }
 
@@ -1181,13 +1181,15 @@
         </ha-card>`;
     }
 
-    _paperColor(it) {
+    // skins with their own status shades: pal = { none, base, ok, warning, critical }
+    _statusColor(it, pal) {
       const c = this._config;
-      if (!c.status_colors || it.value == null) return PAPER.accent;
-      if (c.color_mode === "severity" && it.color) return it.color;
-      if (it.value >= c.critical_threshold) return PAPER.critical;
-      if (it.value >= c.warning_threshold) return PAPER.warning;
-      return PAPER.ok;
+      if (it.value == null) return pal.none;
+      if (!c.status_colors) return pal.base;
+      if (c.color_mode === "severity") return it.color;
+      if (it.value >= c.critical_threshold) return pal.critical;
+      if (it.value >= c.warning_threshold) return pal.warning;
+      return pal.ok;
     }
 
     _renderPaper(items, extra, err, S) {
@@ -1195,7 +1197,7 @@
       const all = [...items, ...extra];
       const rows = all
         .map((it) => {
-          const col = this._paperColor(it);
+          const col = this._statusColor(it, { ...PAPER, none: PAPER.accent, base: PAPER.accent });
           const pct = clampPct(it.value);
           return `
           <div class="p-row" data-entity="${esc(it.id)}" tabindex="0" role="button" style="--c:${esc(col)}">
@@ -1234,10 +1236,7 @@
         .map((it) => {
           const col = c.status_colors ? it.color : "var(--m-primary)";
           const pct = clampPct(it.value);
-          const pace =
-            c.show_pace && it.pace != null
-              ? `<i class="mu-pace" style="left:${it.pace.toFixed(2)}%" title="${esc(fmt(S.pace_title, { p: Math.round(it.pace) }))}"></i>`
-              : "";
+          const pace = this._paceMarker(it, "mu-pace");
           return `
           <div class="mu-row" data-entity="${esc(it.id)}" tabindex="0" role="button" style="--c:${esc(col)};--p:${pct}%">
             <div class="mu-head">
@@ -1273,28 +1272,18 @@
 
     // ------------------------------------------------------------ dot matrix
 
-    _matrixColor(it) {
-      const c = this._config;
-      if (it.value == null) return MATRIX.off;
-      if (!c.status_colors) return MATRIX.on;
-      if (c.color_mode === "severity" && it.color) return it.color;
-      if (it.value >= c.critical_threshold) return MATRIX.critical;
-      if (it.value >= c.warning_threshold) return MATRIX.warning;
-      return MATRIX.ok;
-    }
-
     _renderMatrix(items, extra, err, S) {
       const c = this._config;
       const all = [...items, ...extra];
       const N = 40;
       const rows = all
         .map((it) => {
-          const col = this._matrixColor(it);
+          const col = this._statusColor(it, { ...MATRIX, none: MATRIX.off, base: MATRIX.on });
           const lit = Math.round((clampPct(it.value) / 100) * N);
           const paceAt = c.show_pace && it.pace != null ? Math.min(N - 1, Math.floor((it.pace / 100) * N)) : -1;
           const { on, off } = dotPaths(N, 2, (x) => x < lit && x !== paceAt);
           const pace = paceAt >= 0 ? dotPaths(N, 2, (x) => x === paceAt).on : "";
-          const bar = `<svg class="dm-bar" viewBox="0 0 ${N} 2" preserveAspectRatio="xMinYMid meet" style="--dc:${col}"><path class="dm-off" d="${off}"/><path class="dm-on" d="${on}"/>${
+          const bar = `<svg class="dm-bar" viewBox="0 0 ${N} 2" preserveAspectRatio="xMinYMid meet" style="--dc:${esc(col)}"><path class="dm-off" d="${off}"/><path class="dm-on" d="${on}"/>${
             pace ? `<path class="dm-pace" d="${pace}"><title>${esc(fmt(S.pace_title, { p: Math.round(it.pace) }))}</title></path>` : ""
           }</svg>`;
           const value = it.value == null ? "--" : `${Math.round(it.value)}%`;
@@ -1330,10 +1319,7 @@
         .map((it) => {
           const pct = clampPct(it.value);
           const crit = it.value != null && it.value >= c.critical_threshold;
-          const pace =
-            c.show_pace && it.pace != null
-              ? `<i class="ei-pace" style="left:${it.pace.toFixed(2)}%" title="${esc(fmt(S.pace_title, { p: Math.round(it.pace) }))}"></i>`
-              : "";
+          const pace = this._paceMarker(it, "ei-pace");
           return `
           <div class="ei-row" data-entity="${esc(it.id)}" tabindex="0" role="button">
             <div class="ei-head">
@@ -1359,16 +1345,6 @@
           ${this._staleHtml(S, "ei-note")}
           ${this._errorHtml(err, S, "ei-note ei-warn")}
         </ha-card>`;
-    }
-
-    _shellColor(it) {
-      const c = this._config;
-      if (it.value == null) return SHELL.dim;
-      if (!c.status_colors) return SHELL.bgreen;
-      if (c.color_mode === "severity" && it.color) return it.color;
-      if (it.value >= c.critical_threshold) return SHELL.red;
-      if (it.value >= c.warning_threshold) return SHELL.yellow;
-      return SHELL.bgreen;
     }
 
     // history as a line of block characters, like the `spark` CLI
@@ -1403,7 +1379,9 @@
       const BAR = "|".repeat(120);
       const rows = all
         .map((it) => {
-          const col = this._shellColor(it);
+          const col = this._statusColor(it, {
+            none: SHELL.dim, base: SHELL.bgreen, ok: SHELL.bgreen, warning: SHELL.yellow, critical: SHELL.red,
+          });
           const pct = it.value == null ? "n/a" : `${it.value.toFixed(1)}%`;
           const pace =
             this._config.show_pace && it.pace != null
@@ -1442,16 +1420,6 @@
         </ha-card>`;
     }
 
-    _cupColor(it, pal) {
-      const c = this._config;
-      if (it.value == null) return "var(--cu-label3)";
-      if (!c.status_colors) return pal.tint;
-      if (c.color_mode === "severity" && it.color) return it.color;
-      if (it.value >= c.critical_threshold) return pal.critical;
-      if (it.value >= c.warning_threshold) return pal.warning;
-      return pal.ok;
-    }
-
     _renderCupertino(items, extra, err, S) {
       const c = this._config;
       const dark = !!(this._hass.themes && this._hass.themes.darkMode);
@@ -1459,8 +1427,8 @@
       const all = [...items, ...extra];
       const rows = all
         .map((it) => {
-          const col = this._cupColor(it, pal);
-          const sub = [c.show_reset && it.reset ? esc(it.reset) : ""].filter(Boolean).join("");
+          const col = this._statusColor(it, { ...pal, none: "var(--cu-label3)", base: pal.tint });
+          const sub = c.show_reset && it.reset ? esc(it.reset) : "";
           return `
           <div class="cu-row" data-entity="${esc(it.id)}" tabindex="0" role="button" style="--c:${esc(col)}">
             <div class="cu-head">
@@ -1529,7 +1497,7 @@
       else if (c.style === "eink") card = this._renderEink(items, extra, err, S);
       else card = this._renderDefault(items, extra, err, S);
 
-      const isSkin = ["terminal", "retro", "synthwave", "paper", "cupertino", "shell", "material", "matrix", "eink"].includes(c.style);
+      const isSkin = !["default", "minimal"].includes(c.style);
       const f = isSkin ? resolveFont(c) : { family: "inherit", pixel: false };
       if (f.pixel) ensureFont();
       const font = String(f.family).replace(/[;{}<>]/g, "");
@@ -1997,19 +1965,7 @@
   const editorSchema = (E, nameFields, fontMode, style) => {
     const styleField = {
       name: "style",
-      selector: select([
-        { value: "default", label: E.style_default },
-        { value: "minimal", label: E.style_minimal },
-        { value: "terminal", label: E.style_terminal },
-        { value: "retro", label: E.style_retro },
-        { value: "synthwave", label: E.style_synthwave },
-        { value: "paper", label: E.style_paper },
-        { value: "cupertino", label: E.style_cupertino },
-        { value: "shell", label: E.style_shell },
-        { value: "material", label: E.style_material },
-        { value: "matrix", label: E.style_matrix },
-        { value: "eink", label: E.style_eink },
-      ]),
+      selector: select(STYLES.map((s) => ({ value: s, label: E[`style_${s}`] }))),
     };
     const layoutField = {
       name: "layout",

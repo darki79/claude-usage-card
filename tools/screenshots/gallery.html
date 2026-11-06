@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Claude Usage Card gallery</title>
+<!-- Renders every style with fixed sample data. shoot.mjs turns each .shot into docs/images/<id>.png -->
+<style>
+  :root {
+    --success-color: #43a047; --warning-color: #ffa600; --error-color: #db4437; --primary-color: #03a9f4;
+    --primary-text-color: #e1e1e1; --secondary-text-color: #9b9b9b; --divider-color: rgba(225,225,225,.12);
+    --disabled-text-color: #6f6f6f;
+    /* Material You palette as the Material You utilities would set it */
+    --md-sys-color-primary: #a8c7fa; --md-sys-color-surface-container: #1e2025; --md-sys-color-on-surface: #e2e2e9;
+    --md-sys-color-on-surface-variant: #c4c6d0; --md-sys-color-primary-container: #284777; --md-sys-color-on-primary-container: #d6e3ff;
+  }
+  body { margin: 0; padding: 24px; background: #111; font-family: Roboto, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 14px; color: #e1e1e1; }
+  .shot { display: inline-block; padding: 20px; vertical-align: top; background: #111; }
+  .shot > * { width: var(--w, 400px); }
+</style>
+<script src="mdi-icons.js"></script>
+<script>
+  // minimal stand-ins for Home Assistant's own elements
+  customElements.define("ha-card", class extends HTMLElement {
+    connectedCallback() {
+      if (this.classList.contains("default") || this.classList.contains("minimal")) {
+        Object.assign(this.style, { background: "#1c1c1c", borderRadius: "12px", border: "1px solid #2a2a2a" });
+      }
+    }
+  });
+  customElements.define("ha-icon", class extends HTMLElement {
+    connectedCallback() {
+      const p = MDI[this.getAttribute("icon")] || MDI["mdi:creation"];
+      this.style.display = "inline-flex";
+      const size = getComputedStyle(this).getPropertyValue("--mdc-icon-size").trim() || "24px";
+      if (!this.style.width) { this.style.width = size; this.style.height = size; }
+      this.innerHTML = `<svg viewBox="0 0 24 24" width="100%" height="100%"><path fill="currentColor" d="${p}"/></svg>`;
+    }
+  });
+  customElements.define("ha-form", class extends HTMLElement {});
+</script>
+<script src="../../dist/claude-usage-card.js"></script>
+</head>
+<body>
+<script>
+  const P = "sensor.claude_usage_my_account_", H = 3600e3, now = Date.now(), seen = new Date(now - 90e3).toISOString();
+  const limit = (k, v, kind, reset, model) => ({ [P + k]: { state: String(v), last_updated: seen,
+    attributes: { kind, model: model || null, resets_at: new Date(now + reset).toISOString(), unit_of_measurement: "%", severity: "normal", friendly_name: "x" } } });
+  const states = {
+    ...limit("session_limit_usage", 46, "session", 2.2 * H),
+    ...limit("weekly_all_models_limit_usage", 63, "weekly_all", 3.4 * 24 * H),
+    ...limit("weekly_opus_limit_usage", 88, "weekly_opus", 3.4 * 24 * H, "Opus"),
+  };
+  // recorder history: [hours ago, percent]
+  const curve = {
+    session_limit_usage: [[2.8, 0], [2.6, 8], [2.1, 15], [1.5, 22], [1, 30], [0.6, 37], [0.3, 41], [0.05, 46]],
+    weekly_all_models_limit_usage: [[30, 44], [24, 48], [18, 51], [12, 55], [8, 57], [5, 59], [3, 60], [1, 62], [0.1, 63]],
+    weekly_opus_limit_usage: [[30, 58], [24, 64], [18, 69], [12, 75], [8, 79], [5, 82], [3, 85], [1, 87], [0.1, 88]],
+  };
+  const callWS = async (msg) => Object.fromEntries(msg.entity_ids.map((id) =>
+    [id, (curve[id.slice(P.length)] || []).map(([h, v]) => ({ s: String(v), lu: (now - h * H) / 1000 }))]));
+  const base = { language: "en", locale: { language: "en" }, config: { time_zone: "Europe/Berlin" },
+    user: { name: "Marcel" }, states, entities: {}, devices: {}, callWS };
+
+  const shot = (id, cfg, opts = {}) => {
+    const wrap = document.createElement("div");
+    wrap.className = "shot";
+    wrap.id = id;
+    wrap.style.setProperty("--w", `${opts.width || 400}px`);
+    if (opts.bg) wrap.style.background = opts.bg;
+    const card = document.createElement("claude-usage-card");
+    card.setConfig({ type: "custom:claude-usage-card", ...cfg });
+    card.hass = { ...base, themes: { darkMode: opts.light ? false : true } };
+    wrap.appendChild(card);
+    document.body.appendChild(wrap);
+  };
+
+  const glass = "linear-gradient(135deg,#1d2b4a,#3a1f3d 60%,#0d1b2a)";
+  shot("bars", { show_history: true });
+  shot("columns", { layout: "columns" }, { width: 520 });
+  shot("rings", { layout: "rings" }, { width: 460 });
+  shot("minimal", { style: "minimal", title: "Claude" }, { width: 360 });
+  shot("terminal", { style: "terminal" }, { width: 380 });
+  shot("retro", { style: "retro" }, { width: 380 });
+  shot("synthwave", { style: "synthwave" }, { width: 380 });
+  shot("paper", { style: "paper" });
+  shot("cupertino", { style: "cupertino", status_colors: true }, { bg: glass });
+  shot("shell", { style: "shell", status_colors: true, show_history: true });
+  shot("material", { style: "material" });
+  shot("matrix", { style: "matrix", status_colors: true });
+  shot("eink", { style: "eink" }, { light: true, bg: "#d9d9d9" });
+</script>
+</body>
+</html>

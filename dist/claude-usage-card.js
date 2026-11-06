@@ -6,11 +6,11 @@
  * License: MIT
  */
 (() => {
-  const CARD_VERSION = "1.0.2";
+  const CARD_VERSION = "1.1.0";
   const CARD_TAG = "claude-usage-card";
   const EDITOR_TAG = "claude-usage-card-editor";
   const INTEGRATION_DOMAIN = "hass_claude_usage";
-  const STYLES = ["default", "minimal", "terminal", "retro", "synthwave"];
+  const STYLES = ["default", "minimal", "terminal", "retro", "synthwave", "paper", "cupertino", "shell", "material", "matrix", "eink"];
 
   const DEFAULTS = {
     title: "",
@@ -113,6 +113,12 @@
         style_terminal: "Terminal",
         style_retro: "Retro window",
         style_synthwave: "Synthwave",
+        style_paper: "Paper",
+        style_cupertino: "Cupertino",
+        style_shell: "Shell (Linux terminal)",
+        style_material: "Material You",
+        style_matrix: "Dot matrix",
+        style_eink: "E-ink",
         layout: "Layout (default style)",
         layout_bars: "Bars stacked",
         layout_columns: "Bars side by side",
@@ -141,7 +147,7 @@
         warning_threshold: "Warning from (%)",
         critical_threshold: "Critical from (%)",
         status_colors: "Status colors instead of skin colors",
-        skin: "Skin (terminal, retro, synthwave)",
+        skin: "Skins",
         font: "Font",
         font_auto: "Matching the skin",
         font_pixel: "Pixel (built in)",
@@ -203,6 +209,12 @@
         style_terminal: "Terminal",
         style_retro: "Retro-Fenster",
         style_synthwave: "Synthwave",
+        style_paper: "Papier",
+        style_cupertino: "Cupertino",
+        style_shell: "Shell (Linux-Terminal)",
+        style_material: "Material You",
+        style_matrix: "Punktmatrix",
+        style_eink: "E-Ink",
         layout: "Darstellung (Stil Standard)",
         layout_bars: "Balken untereinander",
         layout_columns: "Balken nebeneinander",
@@ -231,7 +243,7 @@
         warning_threshold: "Warnung ab (%)",
         critical_threshold: "Kritisch ab (%)",
         status_colors: "Statusfarben statt Skin-Farben",
-        skin: "Skin (Terminal, Retro, Synthwave)",
+        skin: "Skins",
         font: "Schriftart",
         font_auto: "Passend zum Skin",
         font_pixel: "Pixel (eingebaut)",
@@ -264,6 +276,12 @@
     terminal: "'Courier New', ui-monospace, monospace",
     retro: "'W95FA', 'MS Sans Serif', 'Microsoft Sans Serif', Tahoma, Verdana, sans-serif",
     synthwave: "'Courier New', ui-monospace, monospace",
+    material: "'Google Sans Flex', 'Google Sans Text', 'Google Sans', Roboto, 'Noto Sans', system-ui, sans-serif",
+    matrix: "system-ui, sans-serif",
+    eink: "'Atkinson Hyperlegible', Inter, 'Helvetica Neue', Arial, system-ui, sans-serif",
+    shell: "'DejaVu Sans Mono', 'Ubuntu Mono', 'Liberation Mono', ui-monospace, Menlo, Consolas, monospace",
+    cupertino: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', Roboto, system-ui, sans-serif",
+    paper: "'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', 'URW Palladio L', Georgia, serif",
   };
   // Returns { family, pixel } for a skin; older configs may hold a CSS family directly in `font`.
   const resolveFont = (c) => {
@@ -273,7 +291,7 @@
       custom = mode;
       mode = "custom";
     }
-    if (mode === "auto") mode = c.style === "retro" ? "classic" : "pixel";
+    if (mode === "auto") mode = ["retro", "paper", "cupertino", "shell", "material", "matrix", "eink"].includes(c.style) ? "classic" : "pixel";
     if (mode === "pixel") return { family: `'${FONT_FAMILY}', 'VT323', ui-monospace, monospace`, pixel: true };
     if (mode === "theme") return { family: "inherit", pixel: false };
     if (mode === "monospace")
@@ -284,6 +302,66 @@
   const SYNTH_COLORS = ["#ff6ec7", "#4cc9f0", "#f9c80e", "#b388ff"];
   const TERMINAL_COLOR = "#e8875a";
   const RETRO_COLOR = "#18b818";
+  // GNOME/Tango-like terminal palette
+  const SHELL = { green: "#4e9a06", bgreen: "#8ae234", yellow: "#fce94f", red: "#ef2929", blue: "#729fcf", cyan: "#34e2e2", dim: "#8a8a8a" };
+  const SPARK_CHARS = "▁▂▃▄▅▆▇█";
+  const COMBINING = new RegExp(`[${String.fromCharCode(0x300)}-${String.fromCharCode(0x36f)}]`, "g");
+  // "Anna Müller" -> "annamueller": umlauts spelled out, other accents dropped, spaces removed or joined
+  const shellName = (v, join) =>
+    String(v)
+      .toLowerCase()
+      .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+      .normalize("NFD").replace(COMBINING, "")
+      .replace(/[^a-z0-9_-]+/g, join)
+      .replace(/^-+|-+$/g, "");
+  // 5x7 dot font: each glyph is the char plus 7 base-32 digits, one per row (5 bits, left = 16)
+  const DOT_FONT = "AehhvhhhBuhhuhhuCehgggheDuhhhhhuEvgguggvFvggugggGehgnhhfHhhhvhhhIe44444eJ72222icKhikokihLggggggvMhrllhhhNhhpljhhOehhhhhePuhhugggQehhhlidRuhhukihSfgge11uTv444444UhhhhhheVhhhhha4WhhhlllaXhha4ahhYhha4444Zv1248gv0ehjlphe14c4444e2eh1248v3v2421he426aiv225vgu11he668guhhe7v1248888ehhehhe9ehhf12c 0000000%op248j3.00000cc,0000c48:0cc0cc0-000v000+044v440/01248g0(2488842)8422248!4444404?eh12404·0004000_000000v";
+  const DOT_GLYPHS = {};
+  for (let i = 0; i < DOT_FONT.length; i += 8)
+    DOT_GLYPHS[DOT_FONT[i]] = [...DOT_FONT.slice(i + 1, i + 8)].map((d) => parseInt(d, 32));
+  const MATRIX = { on: "#f4f4f4", off: "#1c1c1c", accent: "#ff3b30", ok: "#3cff7a", warning: "#ffb21e", critical: "#ff3b30" };
+  const dotUpper = (t) =>
+    String(t)
+      .toUpperCase()
+      .replace(/Ä/g, "AE").replace(/Ö/g, "OE").replace(/Ü/g, "UE").replace(/ẞ|ß/g, "SS")
+      .normalize("NFD").replace(COMBINING, "");
+  // one SVG path per state: every dot of the grid is drawn, lit ones in the "on" path
+  const dotPaths = (cols, rows, lit) => {
+    let on = "";
+    let off = "";
+    for (let y = 0; y < rows; y++)
+      for (let x = 0; x < cols; x++) {
+        const d = `M${x + 0.12} ${y + 0.5}a.38 .38 0 1 0 .76 0a.38 .38 0 1 0 -.76 0`;
+        if (lit(x, y)) on += d;
+        else off += d;
+      }
+    return { on, off };
+  };
+  const dotText = (text, cls, color) => {
+    const chars = [...dotUpper(text)].map((ch) => DOT_GLYPHS[ch] || DOT_GLYPHS["?"]);
+    const cols = Math.max(1, chars.length * 6 - 1);
+    const { on, off } = dotPaths(cols, 7, (x, y) => {
+      const g = chars[Math.floor(x / 6)];
+      const cx = x % 6;
+      return cx < 5 && !!(g[y] & (16 >> cx));
+    });
+    return `<svg class="${cls}" viewBox="0 0 ${cols} 7" style="--dc:${color}" role="img" aria-label="${esc(text)}"><path class="dm-off" d="${off}"/><path class="dm-on" d="${on}"/></svg>`;
+  };
+  // Apple-style semantic system colors, light and dark variants
+  const CUP = {
+    light: { tint: "#007aff", ok: "#34c759", warning: "#ff9500", critical: "#ff3b30" },
+    dark: { tint: "#0a84ff", ok: "#30d158", warning: "#ff9f0a", critical: "#ff453a" },
+  };
+  const PAPER = {
+    sheet: "#f3eee3",
+    ink: "#2b2620",
+    faded: "#7a7064",
+    rule: "#d8cebc",
+    accent: "#b5532f",
+    ok: "#55703f",
+    warning: "#a8791c",
+    critical: "#9e2a2b",
+  };
 
   const langOf = (hass) =>
     ((hass && ((hass.locale && hass.locale.language) || hass.language)) || "en").split("-")[0];
@@ -1103,6 +1181,317 @@
         </ha-card>`;
     }
 
+    _paperColor(it) {
+      const c = this._config;
+      if (!c.status_colors || it.value == null) return PAPER.accent;
+      if (c.color_mode === "severity" && it.color) return it.color;
+      if (it.value >= c.critical_threshold) return PAPER.critical;
+      if (it.value >= c.warning_threshold) return PAPER.warning;
+      return PAPER.ok;
+    }
+
+    _renderPaper(items, extra, err, S) {
+      const c = this._config;
+      const all = [...items, ...extra];
+      const rows = all
+        .map((it) => {
+          const col = this._paperColor(it);
+          const pct = clampPct(it.value);
+          return `
+          <div class="p-row" data-entity="${esc(it.id)}" tabindex="0" role="button" style="--c:${esc(col)}">
+            <div class="p-head">
+              <span class="p-name">${esc(it.name)}</span>
+              <span class="p-pct">${it.value == null ? esc(S.unavailable) : `${Math.round(it.value)}<small>%</small>`}</span>
+            </div>
+            <div class="p-track"><div class="p-fill" style="width:${pct}%"></div><i class="p-blot" style="left:${pct}%"></i>${this._paceMarker(it, "pace p-pace")}</div>
+            ${this._spark(it, col)}
+            ${c.show_reset && it.reset ? `<div class="p-sub">${esc(it.reset)}</div>` : ""}
+            ${this._fcHtml(it, "p-sub p-fc")}
+          </div>`;
+        })
+        .join("");
+      const head =
+        c.show_title || c.show_logo
+          ? `<div class="p-titlebar">${this._logo(PAPER.ink)}${
+              c.show_title ? `<span class="p-title">${esc(c.title || S.title)}</span>` : ""
+            }</div><div class="p-rule"></div>`
+          : "";
+      return `
+        <ha-card class="skin paper">
+          ${head}
+          ${all.length ? rows : `<div class="p-sub">${esc(S.no_sensors)}</div>`}
+          ${this._staleHtml(S, "p-error p-stale")}
+          ${this._errorHtml(err, S, "p-error")}
+        </ha-card>`;
+    }
+
+    // ------------------------------------------------------------ material you
+
+    _renderMaterial(items, extra, err, S) {
+      const c = this._config;
+      const all = [...items, ...extra];
+      const rows = all
+        .map((it) => {
+          const col = c.status_colors ? it.color : "var(--m-primary)";
+          const pct = clampPct(it.value);
+          const pace =
+            c.show_pace && it.pace != null
+              ? `<i class="mu-pace" style="left:${it.pace.toFixed(2)}%" title="${esc(fmt(S.pace_title, { p: Math.round(it.pace) }))}"></i>`
+              : "";
+          return `
+          <div class="mu-row" data-entity="${esc(it.id)}" tabindex="0" role="button" style="--c:${esc(col)};--p:${pct}%">
+            <div class="mu-head">
+              <span class="mu-name">${esc(it.name)}</span>
+              <span class="mu-pct">${it.value == null ? esc(S.unavailable) : `${Math.round(it.value)}<small>%</small>`}</span>
+            </div>
+            <div class="mu-progress${pct <= 0 ? " mu-empty" : ""}${pct >= 100 ? " mu-full" : ""}">
+              <span class="mu-wave"></span><span class="mu-rest"></span><span class="mu-stop"></span>${pace}
+            </div>
+            ${this._spark(it, col)}
+            ${c.show_reset && it.reset ? `<div class="mu-sub">${esc(it.reset)}</div>` : ""}
+            ${this._fcHtml(it, "mu-sub mu-fc")}
+          </div>`;
+        })
+        .join("");
+      const icon = c.show_logo
+        ? c.logo_url
+          ? this._logo()
+          : `<span class="mu-icon"><ha-icon icon="${esc(c.icon || DEFAULTS.icon)}"></ha-icon></span>`
+        : "";
+      const head =
+        c.show_title || c.show_logo
+          ? `<div class="mu-header">${icon}${c.show_title ? `<span class="mu-title">${esc(c.title || S.title)}</span>` : ""}</div>`
+          : "";
+      return `
+        <ha-card class="skin material">
+          ${head}
+          ${all.length ? rows : `<div class="mu-sub">${esc(S.no_sensors)}</div>`}
+          ${this._staleHtml(S, "mu-note mu-stale")}
+          ${this._errorHtml(err, S, "mu-note mu-error")}
+        </ha-card>`;
+    }
+
+    // ------------------------------------------------------------ dot matrix
+
+    _matrixColor(it) {
+      const c = this._config;
+      if (it.value == null) return MATRIX.off;
+      if (!c.status_colors) return MATRIX.on;
+      if (c.color_mode === "severity" && it.color) return it.color;
+      if (it.value >= c.critical_threshold) return MATRIX.critical;
+      if (it.value >= c.warning_threshold) return MATRIX.warning;
+      return MATRIX.ok;
+    }
+
+    _renderMatrix(items, extra, err, S) {
+      const c = this._config;
+      const all = [...items, ...extra];
+      const N = 40;
+      const rows = all
+        .map((it) => {
+          const col = this._matrixColor(it);
+          const lit = Math.round((clampPct(it.value) / 100) * N);
+          const paceAt = c.show_pace && it.pace != null ? Math.min(N - 1, Math.floor((it.pace / 100) * N)) : -1;
+          const { on, off } = dotPaths(N, 2, (x) => x < lit && x !== paceAt);
+          const pace = paceAt >= 0 ? dotPaths(N, 2, (x) => x === paceAt).on : "";
+          const bar = `<svg class="dm-bar" viewBox="0 0 ${N} 2" preserveAspectRatio="xMinYMid meet" style="--dc:${col}"><path class="dm-off" d="${off}"/><path class="dm-on" d="${on}"/>${
+            pace ? `<path class="dm-pace" d="${pace}"><title>${esc(fmt(S.pace_title, { p: Math.round(it.pace) }))}</title></path>` : ""
+          }</svg>`;
+          const value = it.value == null ? "--" : `${Math.round(it.value)}%`;
+          const subs = [];
+          if (c.show_reset && it.resetsAt) subs.push(dotText(this._shortReset(it.resetsAt, S), "dm-small", "#8c8c8c"));
+          else if (c.show_reset && it.reset) subs.push(dotText(it.reset, "dm-small", "#8c8c8c"));
+          if (it.forecast)
+            subs.push(dotText(it.forecast.text, "dm-small", it.forecast.warn ? MATRIX.warning : "#8c8c8c"));
+          return `
+          <div class="dm-row" data-entity="${esc(it.id)}" tabindex="0" role="button">
+            <div class="dm-head">${dotText(it.short, "dm-label", "#bdbdbd")}${dotText(value, "dm-big", col)}</div>
+            ${bar}
+            ${subs.map((x) => `<div class="dm-subline">${x}</div>`).join("")}
+          </div>`;
+        })
+        .join("");
+      const notes =
+        this._staleHtml(S, "dm-note dm-stale") + this._errorHtml(err, S, "dm-note dm-error");
+      return `
+        <ha-card class="skin matrix">
+          ${c.show_title ? `<div class="dm-title">${dotText(c.title || S.skin_title, "dm-head-text", MATRIX.accent)}</div>` : ""}
+          ${all.length ? rows : `<div class="dm-note">${esc(S.no_sensors)}</div>`}
+          ${notes}
+        </ha-card>`;
+    }
+
+    // ------------------------------------------------------------ e-ink
+
+    _renderEink(items, extra, err, S) {
+      const c = this._config;
+      const all = [...items, ...extra];
+      const rows = all
+        .map((it) => {
+          const pct = clampPct(it.value);
+          const crit = it.value != null && it.value >= c.critical_threshold;
+          const pace =
+            c.show_pace && it.pace != null
+              ? `<i class="ei-pace" style="left:${it.pace.toFixed(2)}%" title="${esc(fmt(S.pace_title, { p: Math.round(it.pace) }))}"></i>`
+              : "";
+          return `
+          <div class="ei-row" data-entity="${esc(it.id)}" tabindex="0" role="button">
+            <div class="ei-head">
+              <span class="ei-name">${esc(it.name)}</span>
+              <span class="ei-pct${crit ? " ei-crit" : ""}">${it.value == null ? esc(S.unavailable) : `${Math.round(it.value)}%`}</span>
+            </div>
+            <div class="ei-bar"><div class="ei-fill" style="width:${pct}%"></div></div>
+            <div class="ei-scale">${pace}</div>
+            ${this._spark(it, "#000")}
+            ${c.show_reset && it.reset ? `<div class="ei-sub">${esc(it.reset)}</div>` : ""}
+            ${it.forecast ? `<div class="ei-sub${it.forecast.warn ? " ei-warn" : ""}">${it.forecast.warn ? "▲ " : ""}${esc(it.forecast.text)}</div>` : ""}
+          </div>`;
+        })
+        .join("");
+      const head =
+        c.show_title || c.show_logo
+          ? `<div class="ei-header">${this._logo("#000")}${c.show_title ? `<span class="ei-title">${esc(c.title || S.title)}</span>` : ""}</div>`
+          : "";
+      return `
+        <ha-card class="skin eink">
+          ${head}
+          ${all.length ? rows : `<div class="ei-sub">${esc(S.no_sensors)}</div>`}
+          ${this._staleHtml(S, "ei-note")}
+          ${this._errorHtml(err, S, "ei-note ei-warn")}
+        </ha-card>`;
+    }
+
+    _shellColor(it) {
+      const c = this._config;
+      if (it.value == null) return SHELL.dim;
+      if (!c.status_colors) return SHELL.bgreen;
+      if (c.color_mode === "severity" && it.color) return it.color;
+      if (it.value >= c.critical_threshold) return SHELL.red;
+      if (it.value >= c.warning_threshold) return SHELL.yellow;
+      return SHELL.bgreen;
+    }
+
+    // history as a line of block characters, like the `spark` CLI
+    _sparkText(it) {
+      if (!this._config.show_history || !this._hist || !this._hist[it.id]) return "";
+      const now = Date.now();
+      const span = Math.max(1, Number(this._config.history_hours) || 6) * HOUR;
+      const n = 32;
+      const series = this._hist[it.id];
+      const vals = [];
+      for (let i = 1; i <= n; i++) {
+        const v = this._valueAt(series, now - span + (span * i) / n);
+        vals.push(v);
+      }
+      if (it.value != null) vals[n - 1] = it.value;
+      const known = vals.filter((v) => v != null);
+      if (!known.length) return "";
+      const lo = Math.min(...known);
+      const range = Math.max(5, Math.max(...known) - lo);
+      return vals
+        .map((v) => (v == null ? " " : SPARK_CHARS[Math.min(7, Math.round(((v - lo) / range) * 7))]))
+        .join("");
+    }
+
+    _renderShell(items, extra, err, S) {
+      const c = this._config;
+      const all = [...items, ...extra];
+      const h = this._hass;
+      const user = shellName((h.user && h.user.name) || "", "") || "user";
+      const host = shellName((h.config && h.config.location_name) || "", "-") || "homeassistant";
+      const prompt = `<span class="sh-user">${esc(user)}@${esc(host)}</span>:<span class="sh-path">~</span>$`;
+      const BAR = "|".repeat(120);
+      const rows = all
+        .map((it) => {
+          const col = this._shellColor(it);
+          const pct = it.value == null ? "n/a" : `${it.value.toFixed(1)}%`;
+          const pace =
+            this._config.show_pace && it.pace != null
+              ? `<i class="sh-pace" style="left:${it.pace.toFixed(2)}%" title="${esc(fmt(S.pace_title, { p: Math.round(it.pace) }))}">¦</i>`
+              : "";
+          const spark = this._sparkText(it);
+          const notes = [];
+          if (spark) notes.push(`<div class="sh-note sh-spark" style="color:${esc(col)}">${esc(spark)}</div>`);
+          if (c.show_reset && it.reset) notes.push(`<div class="sh-note"># ${esc(it.reset)}</div>`);
+          if (it.forecast)
+            notes.push(`<div class="sh-note ${it.forecast.warn ? "sh-warn" : ""}">${it.forecast.warn ? "warning: " : "# "}${esc(it.forecast.text)}</div>`);
+          return `
+          <div class="sh-row" data-entity="${esc(it.id)}" tabindex="0" role="button" style="--c:${esc(col)}">
+            <span class="sh-label">${esc(it.short)}</span>
+            <span class="sh-meter">[<span class="sh-track"><span class="sh-fill" style="width:${clampPct(it.value)}%">${BAR}</span>${pace}<span class="sh-pct">${esc(pct)}</span></span>]</span>
+            ${notes.length ? `<div class="sh-notes">${notes.join("")}</div>` : ""}
+          </div>`;
+        })
+        .join("");
+      const title = c.title || `${user}@${host}: ~`;
+      const msgs =
+        this._staleHtml(S, "sh-msg sh-warn") + this._errorHtml(err, S, "sh-msg sh-err");
+      return `
+        <ha-card class="skin shell">
+          ${
+            c.show_title
+              ? `<div class="sh-bar">${c.show_logo ? this._logo(SHELL.dim) : ""}<span class="sh-title">${esc(title)}</span><span class="sh-wbtns"><i>&#x2013;</i><i>&#x25A1;</i><i class="sh-x">&#x2715;</i></span></div>`
+              : ""
+          }
+          <div class="sh-body">
+            <div class="sh-line">${prompt} <span class="sh-cmd">claude-usage status</span></div>
+            ${all.length ? `<div class="sh-grid">${rows}</div>` : `<div class="sh-msg sh-err">${esc(S.no_sensors)}</div>`}
+            ${msgs}
+            <div class="sh-line">${prompt} <span class="sh-cursor"></span></div>
+          </div>
+        </ha-card>`;
+    }
+
+    _cupColor(it, pal) {
+      const c = this._config;
+      if (it.value == null) return "var(--cu-label3)";
+      if (!c.status_colors) return pal.tint;
+      if (c.color_mode === "severity" && it.color) return it.color;
+      if (it.value >= c.critical_threshold) return pal.critical;
+      if (it.value >= c.warning_threshold) return pal.warning;
+      return pal.ok;
+    }
+
+    _renderCupertino(items, extra, err, S) {
+      const c = this._config;
+      const dark = !!(this._hass.themes && this._hass.themes.darkMode);
+      const pal = dark ? CUP.dark : CUP.light;
+      const all = [...items, ...extra];
+      const rows = all
+        .map((it) => {
+          const col = this._cupColor(it, pal);
+          const sub = [c.show_reset && it.reset ? esc(it.reset) : ""].filter(Boolean).join("");
+          return `
+          <div class="cu-row" data-entity="${esc(it.id)}" tabindex="0" role="button" style="--c:${esc(col)}">
+            <div class="cu-head">
+              <span class="cu-name">${esc(it.name)}</span>
+              <span class="cu-pct">${it.value == null ? esc(S.unavailable) : `${Math.round(it.value)}<small>%</small>`}</span>
+            </div>
+            <div class="cu-track"><div class="cu-fill" style="width:${clampPct(it.value)}%"></div>${this._paceMarker(it, "pace cu-pace")}</div>
+            ${this._spark(it, col)}
+            ${sub ? `<div class="cu-sub">${sub}</div>` : ""}
+            ${this._fcHtml(it, "cu-sub cu-fc")}
+          </div>`;
+        })
+        .join("");
+      const icon = c.show_logo
+        ? c.logo_url
+          ? this._logo()
+          : `<span class="cu-app" style="--a:${esc(toCss("logo_color" in this._rawConfig() ? c.logo_color : DEFAULTS.logo_color))}"><ha-icon icon="${esc(c.icon || DEFAULTS.icon)}"></ha-icon></span>`
+        : "";
+      const head =
+        c.show_title || c.show_logo
+          ? `<div class="cu-header">${icon}${c.show_title ? `<span class="cu-title">${esc(c.title || S.title)}</span>` : ""}</div>`
+          : "";
+      return `
+        <ha-card class="skin cupertino ${dark ? "cu-dark" : "cu-light"}" style="--cu-tint:${pal.tint};--cu-red:${pal.critical};--cu-orange:${pal.warning}">
+          ${head}
+          ${all.length ? `<div class="cu-group">${rows}</div>` : `<div class="cu-sub">${esc(S.no_sensors)}</div>`}
+          ${this._staleHtml(S, "cu-note cu-stale")}
+          ${this._errorHtml(err, S, "cu-note cu-error")}
+        </ha-card>`;
+    }
+
     // ------------------------------------------------------------ render
 
     _render() {
@@ -1132,9 +1521,15 @@
       else if (c.style === "terminal") card = this._renderTerminal(items, extra, err, S);
       else if (c.style === "retro") card = this._renderRetro(items, extra, err, S);
       else if (c.style === "synthwave") card = this._renderSynthwave(items, extra, err, S);
+      else if (c.style === "paper") card = this._renderPaper(items, extra, err, S);
+      else if (c.style === "cupertino") card = this._renderCupertino(items, extra, err, S);
+      else if (c.style === "shell") card = this._renderShell(items, extra, err, S);
+      else if (c.style === "material") card = this._renderMaterial(items, extra, err, S);
+      else if (c.style === "matrix") card = this._renderMatrix(items, extra, err, S);
+      else if (c.style === "eink") card = this._renderEink(items, extra, err, S);
       else card = this._renderDefault(items, extra, err, S);
 
-      const isSkin = ["terminal", "retro", "synthwave"].includes(c.style);
+      const isSkin = ["terminal", "retro", "synthwave", "paper", "cupertino", "shell", "material", "matrix", "eink"].includes(c.style);
       const f = isSkin ? resolveFont(c) : { family: "inherit", pixel: false };
       if (f.pixel) ensureFont();
       const font = String(f.family).replace(/[;{}<>]/g, "");
@@ -1389,6 +1784,201 @@
     .s-pace { background: #fff; box-shadow: 0 0 6px #fff; }
     .s-fc.fc-warn { color: #f9c80e; text-shadow: 0 0 6px #f9c80e; }
     .s-error { display: flex; align-items: center; gap: 6px; margin: 10px 16px 0; color: #ff5f8a; }
+    /* ---------- paper ---------- */
+    ha-card.paper { --p-sheet: ${PAPER.sheet}; --p-ink: ${PAPER.ink}; --p-faded: ${PAPER.faded}; --p-rule: ${PAPER.rule};
+      color: var(--p-ink); padding: 18px 22px 16px; border-radius: 3px; border: none;
+      background-color: var(--p-sheet);
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .28 0 0 0 0 .18 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+        radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,.35), transparent 60%),
+        linear-gradient(180deg, transparent 85%, rgba(120,96,60,.06));
+      box-shadow: 0 1px 1px rgba(60,45,25,.18), 0 6px 18px -6px rgba(40,30,15,.35);
+      font-feature-settings: "kern", "liga", "onum"; }
+    .p-titlebar { display: flex; align-items: center; gap: 10px; }
+    .p-titlebar .logo { color: var(--p-ink) !important; }
+    .p-title { font-size: 1.6em; font-weight: 700; letter-spacing: -.005em; line-height: 1.15; }
+    .p-rule { height: 4px; margin: 10px 0 4px; border-top: 1.5px solid var(--p-ink); border-bottom: .75px solid var(--p-ink); }
+    .p-row { padding: 12px 0 13px; }
+    .p-row + .p-row { border-top: 1px solid var(--p-rule); }
+    .p-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 7px; }
+    .p-name { font-style: italic; font-size: 1.12em; color: var(--p-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .p-pct { font-size: 2.3em; line-height: 1; color: var(--c); font-feature-settings: "lnum", "tnum"; white-space: nowrap; }
+    .p-pct small { font-size: .55em; margin-left: 1px; vertical-align: .55em; }
+    .p-track { position: relative; height: 3px; background: var(--p-rule); border-radius: 2px; margin: 0 5px 0 0; }
+    .p-fill { height: 100%; background: var(--c); border-radius: 2px; transition: width .6s ease; }
+    .p-blot { position: absolute; top: 50%; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%;
+      background: var(--c); box-shadow: 0 0 0 2px var(--p-sheet); transition: left .6s ease; }
+    .p-pace { top: -6px; bottom: -6px; width: 1.25px; margin-left: -.6px; background: var(--p-ink); box-shadow: none; }
+    .p-sub { margin-top: 7px; font-size: .9em; color: var(--p-faded); }
+    .p-fc { margin-top: 2px; font-style: italic; }
+    .p-fc.fc-warn { color: var(--c); }
+    .p-row .spark { margin-top: 8px; height: 20px; }
+    .p-row .spark path:first-child { opacity: .08 !important; }
+    .p-error { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-style: italic; color: ${PAPER.critical}; }
+    .p-error ha-icon { --mdc-icon-size: 18px; }
+    .p-stale { color: ${PAPER.warning}; }
+    .paper [role="button"]:focus-visible { outline: 1.5px dashed var(--p-ink); outline-offset: 3px; border-radius: 0; }
+    /* ---------- material you (Material 3, colors from the theme) ---------- */
+    ha-card.material {
+      --m-primary: var(--md-sys-color-primary, var(--primary-color, #6750a4));
+      --m-surface: var(--md-sys-color-surface-container, var(--ha-card-background, var(--card-background-color, #f3edf7)));
+      --m-on: var(--md-sys-color-on-surface, var(--primary-text-color, #1d1b20));
+      --m-on-var: var(--md-sys-color-on-surface-variant, var(--secondary-text-color, #49454f));
+      --m-pc: var(--md-sys-color-primary-container, color-mix(in srgb, var(--m-primary) 24%, transparent));
+      --m-onpc: var(--md-sys-color-on-primary-container, var(--m-primary));
+      --m-error: var(--md-sys-color-error, var(--error-color, #b3261e));
+      background: var(--m-surface); color: var(--m-on); border: none; border-radius: 24px; padding: 20px 20px 16px; box-shadow: none; }
+    .mu-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .mu-icon { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+      background: var(--m-pc); color: var(--m-onpc); --mdc-icon-size: 22px; }
+    .mu-title { font-size: 22px; line-height: 28px; font-weight: 400; }
+    .mu-row { padding: 10px 0 12px; border-radius: 16px; }
+    .mu-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+    .mu-name { font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: .01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mu-pct { font-size: 28px; line-height: 32px; font-weight: 500; color: var(--c); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .mu-pct small { font-size: 16px; font-weight: 500; margin-left: 1px; }
+    .mu-progress { position: relative; height: 12px; }
+    .mu-wave { position: absolute; left: 0; top: 0; height: 12px; width: max(0px, calc(var(--p) - 4px)); background: var(--c);
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6Q6 1.5 12 6T24 6' fill='none' stroke='%23000' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") left center / 24px 12px repeat-x;
+              mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6Q6 1.5 12 6T24 6' fill='none' stroke='%23000' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") left center / 24px 12px repeat-x;
+      animation: mwave 1.8s linear infinite; transition: width .5s cubic-bezier(.2,0,0,1); }
+    .mu-rest { position: absolute; top: 4px; height: 4px; right: 0; left: min(100%, calc(var(--p) + 4px)); border-radius: 2px;
+      background: color-mix(in srgb, var(--c) 24%, transparent); transition: left .5s cubic-bezier(.2,0,0,1); }
+    .mu-stop { position: absolute; right: 0; top: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--c); }
+    .mu-empty .mu-rest { left: 0; }
+    .mu-full .mu-stop, .mu-full .mu-rest { display: none; }
+    .mu-full .mu-wave { width: 100%; }
+    .mu-pace { position: absolute; top: -2px; width: 3px; height: 16px; margin-left: -1.5px; border-radius: 2px; background: var(--m-on); opacity: .5; }
+    @keyframes mwave { to { -webkit-mask-position: 24px center; mask-position: 24px center; } }
+    @media (prefers-reduced-motion: reduce) { .mu-wave { animation: none; } }
+    .mu-sub { margin-top: 8px; font-size: 14px; line-height: 20px; color: var(--m-on-var); letter-spacing: .015em; }
+    .mu-fc { margin-top: 0; }
+    .mu-fc.fc-warn { color: var(--m-error); font-weight: 500; }
+    .mu-row .spark { margin-top: 10px; height: 24px; }
+    .mu-note { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 14px; color: var(--m-on-var); }
+    .mu-note ha-icon { --mdc-icon-size: 18px; }
+    .mu-error { color: var(--m-error); }
+    .material [role="button"]:focus-visible { outline: 2px solid var(--m-primary); outline-offset: 2px; border-radius: 16px; }
+
+    /* ---------- dot matrix ---------- */
+    ha-card.matrix { background-color: #0b0b0b; color: #f4f4f4; border: 1px solid #222; border-radius: 14px; padding: 16px 18px 14px;
+      background-image: radial-gradient(circle, #161616 1px, transparent 1.3px); background-size: 6px 6px; }
+    .matrix svg { display: block; overflow: visible; }
+    .matrix .dm-off { fill: ${MATRIX.off}; }
+    .matrix .dm-on { fill: var(--dc); filter: drop-shadow(0 0 .35px var(--dc)); }
+    .matrix .dm-pace { fill: ${MATRIX.accent}; }
+    .dm-title { margin-bottom: 12px; }
+    .dm-head-text { height: 21px; width: auto; max-width: 100%; }
+    .dm-row { padding: 8px 0 10px; }
+    .dm-row + .dm-row { border-top: 1px dashed #262626; }
+    .dm-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; margin-bottom: 8px; }
+    .dm-label { height: 14px; width: auto; max-width: 60%; }
+    .dm-big { height: 35px; width: auto; flex: 0 0 auto; }
+    .dm-bar { width: 100%; height: auto; }
+    .dm-subline { margin-top: 7px; }
+    .dm-small { height: 10.5px; width: auto; max-width: 100%; }
+    .dm-note { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: #8c8c8c; }
+    .dm-note ha-icon { --mdc-icon-size: 16px; }
+    .dm-error { color: ${MATRIX.accent}; }
+    .dm-stale { color: ${MATRIX.warning}; }
+    .matrix [role="button"]:focus-visible { outline: 1px dashed #f4f4f4; outline-offset: 2px; border-radius: 4px; }
+
+    /* ---------- e-ink (pure black and white, no motion) ---------- */
+    ha-card.eink { background: #fff; color: #000; border: 2px solid #000; border-radius: 6px; padding: 14px 16px 12px; box-shadow: none;
+      font-weight: 600; -webkit-font-smoothing: none; }
+    .eink * { transition: none !important; animation: none !important; }
+    .ei-header { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 3px solid #000; }
+    .ei-header .logo { color: #000 !important; }
+    .ei-title { font-size: 21px; font-weight: 800; letter-spacing: -.01em; }
+    .ei-row { padding: 10px 0 8px; }
+    .ei-row + .ei-row { border-top: 1px solid #000; }
+    .ei-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+    .ei-name { font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ei-pct { font-size: 30px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; padding: 0 4px; }
+    .ei-pct.ei-crit { background: #000; color: #fff; border-radius: 3px; }
+    .ei-bar { height: 18px; border: 2px solid #000; border-radius: 3px; background: #fff; padding: 2px; box-sizing: border-box; }
+    .ei-fill { height: 100%; background: #000; border-radius: 1px; }
+    .ei-scale { position: relative; height: 7px; }
+    .ei-pace { position: absolute; top: 1px; width: 0; height: 0; margin-left: -6px; border: 6px solid transparent; border-top: 0; border-bottom: 6px solid #000; }
+    .ei-sub { margin-top: 3px; font-size: 13px; font-weight: 600; color: #000; }
+    .ei-warn { font-weight: 800; }
+    .ei-row .spark { margin-top: 4px; height: 22px; }
+    .ei-row .spark path:first-child { display: none; }
+    .ei-row .spark .spark-line { stroke-width: 2; }
+    .ei-note { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; font-weight: 700; color: #000; }
+    .ei-note ha-icon { --mdc-icon-size: 18px; color: #000; }
+    .eink [role="button"]:focus-visible { outline: 3px solid #000; outline-offset: 2px; border-radius: 4px; }
+
+    /* ---------- shell (Linux terminal emulator) ---------- */
+    ha-card.shell { background: #171717; color: #d3d7cf; border: 1px solid #2e2e2e; border-radius: 10px; font-size: 13.5px;
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,.6); }
+    .sh-bar { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; height: 34px; padding: 0 92px;
+      background: #2b2b2b; border-bottom: 1px solid #111; color: #c0c0c0; font: 600 13px/1 Cantarell, "Ubuntu", "Noto Sans", system-ui, sans-serif; }
+    .sh-bar .logo { position: absolute; left: 12px; width: 16px !important; height: 16px !important; --mdc-icon-size: 16px !important; }
+    .sh-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sh-wbtns { position: absolute; right: 8px; display: flex; gap: 6px; }
+    .sh-wbtns i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+      background: #3a3a3a; color: #ddd; font-size: 11px; }
+    .sh-body { padding: 10px 12px 12px; line-height: 1.45; }
+    .sh-line { white-space: nowrap; overflow: hidden; }
+    .sh-user { color: ${SHELL.bgreen}; font-weight: 700; }
+    .sh-path { color: ${SHELL.blue}; font-weight: 700; }
+    .sh-cmd { color: #eeeeec; }
+    .sh-cursor { display: inline-block; width: .6em; height: 1.1em; vertical-align: -.2em; background: #d3d7cf; animation: blink 1.1s steps(1) infinite; }
+    .sh-grid { display: grid; grid-template-columns: max-content 1fr; column-gap: 1ch; margin: 4px 0 6px; }
+    .sh-row { display: contents; }
+    .sh-label { color: ${SHELL.cyan}; white-space: nowrap; }
+    .sh-meter { display: flex; min-width: 0; color: #eeeeec; font-weight: 700; }
+    .sh-track { position: relative; flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; }
+    .sh-fill { display: inline-block; overflow: hidden; vertical-align: top; color: var(--c); font-weight: 400; transition: width .4s steps(20); }
+    .sh-pace { position: absolute; top: 0; font-style: normal; color: #eeeeec; opacity: .55; transform: translateX(-50%); font-weight: 400; }
+    .sh-pct { position: absolute; right: 0; top: 0; padding-left: 1ch; background: #171717; color: #eeeeec; }
+    .sh-notes { grid-column: 2; margin-bottom: 4px; }
+    .sh-note { color: ${SHELL.dim}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sh-spark { letter-spacing: 0; line-height: 1.2; }
+    .sh-warn { color: ${SHELL.yellow}; }
+    .sh-err { color: ${SHELL.red}; }
+    .sh-msg { display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+    .sh-msg ha-icon { display: none; }
+    .sh-msg.sh-warn::before { content: "warning:"; }
+    .sh-msg.sh-err::before { content: "error:"; }
+    .shell [role="button"]:focus-visible { outline: none; }
+    .shell .sh-row:focus-visible .sh-label { background: #d3d7cf; color: #171717; }
+    /* ---------- cupertino (Apple-style materials and type) ---------- */
+    ha-card.cupertino { --cu-radius: 22px; padding: 16px; border: none; border-radius: var(--cu-radius);
+      -webkit-backdrop-filter: saturate(180%) blur(30px); backdrop-filter: saturate(180%) blur(30px);
+      -webkit-font-smoothing: antialiased; letter-spacing: -.01em; font-size: 15px; }
+    ha-card.cu-light { --cu-bg: rgba(242,242,247,.78); --cu-cell: rgba(255,255,255,.92); --cu-label: #000; --cu-label2: rgba(60,60,67,.6);
+      --cu-label3: rgba(60,60,67,.3); --cu-sep: rgba(60,60,67,.18); --cu-fillbg: rgba(120,120,128,.16);
+      background: var(--cu-bg); color: var(--cu-label); box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.08); }
+    ha-card.cu-dark { --cu-bg: rgba(28,28,30,.72); --cu-cell: rgba(44,44,46,.72); --cu-label: #fff; --cu-label2: rgba(235,235,245,.6);
+      --cu-label3: rgba(235,235,245,.3); --cu-sep: rgba(84,84,88,.6); --cu-fillbg: rgba(120,120,128,.32);
+      background: var(--cu-bg); color: var(--cu-label); box-shadow: 0 0 0 .5px rgba(255,255,255,.08) inset, 0 8px 28px rgba(0,0,0,.35); }
+    .cu-header { display: flex; align-items: center; gap: 10px; margin: 0 4px 12px; }
+    .cu-app { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center;
+      color: #fff; --mdc-icon-size: 19px; background: linear-gradient(180deg, color-mix(in srgb, var(--a) 82%, #fff), var(--a));
+      box-shadow: 0 .5px 0 rgba(255,255,255,.35) inset, 0 1px 2px rgba(0,0,0,.18); }
+    .cu-title { font-size: 22px; font-weight: 700; letter-spacing: -.022em; line-height: 1.15; }
+    .cu-group { background: var(--cu-cell); border-radius: 12px; overflow: hidden; }
+    .cu-row { padding: 11px 16px 12px; position: relative; }
+    .cu-row + .cu-row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: .5px; background: var(--cu-sep); }
+    .cu-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+    .cu-name { font-size: 15px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cu-pct { font-family: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif; font-size: 22px; font-weight: 600;
+      line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; letter-spacing: -.01em; white-space: nowrap; }
+    .cu-pct small { font-size: 13px; font-weight: 600; margin-left: 1px; }
+    .cu-track { position: relative; height: 6px; border-radius: 3px; background: var(--cu-fillbg); }
+    .cu-fill { height: 100%; border-radius: 3px; background: var(--c); transition: width .5s cubic-bezier(.25,.1,.25,1); }
+    .cu-pace { top: -3px; bottom: -3px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--cu-label); box-shadow: 0 0 0 1.5px var(--cu-cell); opacity: .55; }
+    .cu-sub { margin-top: 6px; font-size: 13px; color: var(--cu-label2); letter-spacing: -.005em; }
+    .cu-fc { margin-top: 2px; }
+    .cu-fc.fc-warn { color: var(--cu-orange); font-weight: 500; }
+    .cu-row .spark { margin-top: 8px; height: 22px; }
+    .cu-note { display: flex; align-items: center; gap: 6px; margin: 10px 4px 0; font-size: 13px; color: var(--cu-label2); }
+    .cu-note ha-icon { --mdc-icon-size: 16px; }
+    .cu-error { color: var(--cu-red); }
+    .cu-stale { color: var(--cu-orange); }
+    .cupertino [role="button"]:focus-visible { outline: 3px solid color-mix(in srgb, var(--cu-tint) 60%, transparent); outline-offset: -3px; border-radius: 12px; }
   `;
 
   // ---------------------------------------------------------------- Editor
@@ -1404,93 +1994,101 @@
   const section = (title, icon, schema) => ({ type: "expandable", name: "", flatten: true, title, icon, schema });
   const NAME_PREFIX = "name::";
 
-  const editorSchema = (E, nameFields, fontMode) => [
-    pair(
-      {
-        name: "style",
-        selector: select([
-          { value: "default", label: E.style_default },
-          { value: "minimal", label: E.style_minimal },
-          { value: "terminal", label: E.style_terminal },
-          { value: "retro", label: E.style_retro },
-          { value: "synthwave", label: E.style_synthwave },
-        ]),
-      },
-      {
-        name: "layout",
-        selector: select([
-          { value: "bars", label: E.layout_bars },
-          { value: "columns", label: E.layout_columns },
-          { value: "rings", label: E.layout_rings },
-        ]),
-      }
-    ),
-    section(E.logo, "mdi:image-outline", [
-      pair(bool("show_title"), bool("show_logo")),
-      { name: "title", selector: { text: {} } },
-      { name: "icon", selector: { icon: {} } },
-      { name: "logo_url", selector: { text: {} } },
-      pair(rgb("logo_color"), numField("logo_size", 12, 96, "px")),
-    ]),
-    section(E.sensors, "mdi:gauge", [
-      {
-        name: "entities",
-        selector: {
-          entity: { multiple: true, filter: { domain: "sensor", integration: INTEGRATION_DOMAIN } },
+  const editorSchema = (E, nameFields, fontMode, style) => {
+    const styleField = {
+      name: "style",
+      selector: select([
+        { value: "default", label: E.style_default },
+        { value: "minimal", label: E.style_minimal },
+        { value: "terminal", label: E.style_terminal },
+        { value: "retro", label: E.style_retro },
+        { value: "synthwave", label: E.style_synthwave },
+        { value: "paper", label: E.style_paper },
+        { value: "cupertino", label: E.style_cupertino },
+        { value: "shell", label: E.style_shell },
+        { value: "material", label: E.style_material },
+        { value: "matrix", label: E.style_matrix },
+        { value: "eink", label: E.style_eink },
+      ]),
+    };
+    const layoutField = {
+      name: "layout",
+      selector: select([
+        { value: "bars", label: E.layout_bars },
+        { value: "columns", label: E.layout_columns },
+        { value: "rings", label: E.layout_rings },
+      ]),
+    };
+    // "layout" only applies to the default style, so the skins hide it
+    return [
+      !style || style === "default" ? pair(styleField, layoutField) : styleField,
+      section(E.logo, "mdi:image-outline", [
+        pair(bool("show_title"), bool("show_logo")),
+        { name: "title", selector: { text: {} } },
+        { name: "icon", selector: { icon: {} } },
+        { name: "logo_url", selector: { text: {} } },
+        pair(rgb("logo_color"), numField("logo_size", 12, 96, "px")),
+      ]),
+      section(E.sensors, "mdi:gauge", [
+        {
+          name: "entities",
+          selector: {
+            entity: { multiple: true, filter: { domain: "sensor", integration: INTEGRATION_DOMAIN } },
+          },
         },
-      },
-      { name: "filter", selector: { text: {} } },
-    ]),
-    ...(nameFields.length ? [section(E.names, "mdi:rename-outline", nameFields)] : []),
-    section(E.display, "mdi:tune-variant", [
-      pair(bool("color_values"), bool("show_reset")),
-      {
-        name: "reset_display",
-        selector: select([
-          { value: "both", label: E.reset_both },
-          { value: "relative", label: E.reset_relative },
-          { value: "absolute", label: E.reset_absolute },
-        ]),
-      },
-      pair(bool("show_extra_usage"), bool("show_api_error")),
-      numField("stale_minutes", 0, 1440, "min"),
-    ]),
-    section(E.colors, "mdi:palette-outline", [
-      {
-        name: "color_mode",
-        selector: select([
-          { value: "threshold", label: E.color_threshold },
-          { value: "severity", label: E.color_severity },
-        ]),
-      },
-      pair(numField("warning_threshold", 0, 100, "%"), numField("critical_threshold", 0, 100, "%")),
-      { type: "grid", name: "", column_min_width: "100px", schema: [rgb("color_ok"), rgb("color_warning"), rgb("color_critical")] },
-    ]),
-    section(E.skin, "mdi:palette-swatch-outline", [
-      {
-        name: "font",
-        selector: select([
-          { value: "auto", label: E.font_auto },
-          { value: "pixel", label: E.font_pixel },
-          { value: "classic", label: E.font_classic },
-          { value: "theme", label: E.font_theme },
-          { value: "monospace", label: E.font_monospace },
-          { value: "custom", label: E.font_custom_opt },
-        ]),
-      },
-      ...(fontMode === "custom" ? [{ name: "font_custom", selector: { text: {} } }] : []),
-      bool("status_colors"),
-    ]),
-    section(E.analysis, "mdi:chart-timeline-variant", [
-      pair(bool("show_pace"), bool("show_forecast")),
-      pair(bool("show_history"), numField("history_hours", 1, 48, "h")),
-    ]),
-    section(E.actions, "mdi:gesture-tap", [
-      { name: "tap_action", selector: { ui_action: {} } },
-      { name: "hold_action", selector: { ui_action: {} } },
-      { name: "double_tap_action", selector: { ui_action: {} } },
-    ]),
-  ];
+        { name: "filter", selector: { text: {} } },
+      ]),
+      ...(nameFields.length ? [section(E.names, "mdi:rename-outline", nameFields)] : []),
+      section(E.display, "mdi:tune-variant", [
+        pair(bool("color_values"), bool("show_reset")),
+        {
+          name: "reset_display",
+          selector: select([
+            { value: "both", label: E.reset_both },
+            { value: "relative", label: E.reset_relative },
+            { value: "absolute", label: E.reset_absolute },
+          ]),
+        },
+        pair(bool("show_extra_usage"), bool("show_api_error")),
+        numField("stale_minutes", 0, 1440, "min"),
+      ]),
+      section(E.colors, "mdi:palette-outline", [
+        {
+          name: "color_mode",
+          selector: select([
+            { value: "threshold", label: E.color_threshold },
+            { value: "severity", label: E.color_severity },
+          ]),
+        },
+        pair(numField("warning_threshold", 0, 100, "%"), numField("critical_threshold", 0, 100, "%")),
+        { type: "grid", name: "", column_min_width: "100px", schema: [rgb("color_ok"), rgb("color_warning"), rgb("color_critical")] },
+      ]),
+      section(E.skin, "mdi:palette-swatch-outline", [
+        {
+          name: "font",
+          selector: select([
+            { value: "auto", label: E.font_auto },
+            { value: "pixel", label: E.font_pixel },
+            { value: "classic", label: E.font_classic },
+            { value: "theme", label: E.font_theme },
+            { value: "monospace", label: E.font_monospace },
+            { value: "custom", label: E.font_custom_opt },
+          ]),
+        },
+        ...(fontMode === "custom" ? [{ name: "font_custom", selector: { text: {} } }] : []),
+        bool("status_colors"),
+      ]),
+      section(E.analysis, "mdi:chart-timeline-variant", [
+        pair(bool("show_pace"), bool("show_forecast")),
+        pair(bool("show_history"), numField("history_hours", 1, 48, "h")),
+      ]),
+      section(E.actions, "mdi:gesture-tap", [
+        { name: "tap_action", selector: { ui_action: {} } },
+        { name: "hold_action", selector: { ui_action: {} } },
+        { name: "double_tap_action", selector: { ui_action: {} } },
+      ]),
+    ];
+  };
 
   const EDITOR_KEYS = [
     "title", "style", "layout", "color_mode", "show_logo", "icon", "logo_url", "logo_color", "logo_size",
@@ -1573,7 +2171,7 @@
       for (const id of ids) data[NAME_PREFIX + id] = names[id] || "";
       this._form.hass = this._hass;
       this._form.data = data;
-      this._form.schema = editorSchema(E, nameFields, fontMode);
+      this._form.schema = editorSchema(E, nameFields, fontMode, cfg.style);
       this._form.computeLabel = (s) => this._labels[s.name] || E[s.name] || s.name;
     }
 
@@ -1625,7 +2223,7 @@
       type: CARD_TAG,
       name: "Claude Usage Card",
       description:
-        "Session and weekly limits from the Claude Usage integration: bars, rings, terminal, retro window or synthwave.",
+        "Session and weekly limits from the Claude Usage integration: bars, rings, minimal and nine skins from terminal to e-ink.",
       preview: true,
     });
   }

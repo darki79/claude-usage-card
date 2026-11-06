@@ -26,3 +26,4 @@ jobs:
           node-version: 22
       - run: node --check dist/claude-usage-card.js
       - run: node test/forecast.test.js
+      - run: node test/render.test.js

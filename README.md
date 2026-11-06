@@ -1,8 +1,8 @@
 # Claude Usage Card
 
-A Lovelace card that shows your Claude subscription limits (5-hour session, weekly limits, per-model limits, extra usage) as bars or rings, with a countdown to each reset.
+A Lovelace card that shows your Claude subscription limits (5-hour session, weekly limits, per-model limits, extra usage) as bars, rings or one of nine skins, with a countdown to each reset.
 
-![Claude Usage Card: default, terminal, retro and synthwave styles](https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/overview.png)
+![Claude Usage Card: default, shell, paper, dot matrix and Cupertino styles](https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/overview.png)
 
 The card only reads sensors. The data comes from the **[Claude Usage integration](https://github.com/trickv/hass-claude-usage)**, which you need to install first.
 
@@ -13,7 +13,7 @@ The card only reads sensors. The data comes from the **[Claude Usage integration
 - Detects all limit sensors of the integration automatically, including new model limits
 - Three layouts: `bars` (stacked), `columns` (side by side) and `rings`
 - Minimal style: one compact line per limit
-- Three retro skins: `terminal` (amber CRT), `retro` (90s desktop window) and `synthwave` (neon sunset)
+- Nine skins: `terminal` (amber CRT), `retro` (90s desktop window), `synthwave` (neon sunset), `paper`, `cupertino` (Apple-style), `shell` (Linux terminal), `material` (Material You), `matrix` (dot matrix) and `eink` (black and white for e-paper displays)
 - Countdown and/or local time of the next reset
 - Colors by your own thresholds or by the `severity` the API reports
 - Configurable logo: any MDI icon or your own image
@@ -28,12 +28,19 @@ The card only reads sensors. The data comes from the **[Claude Usage integration
 
 ## Requirements
 
-- Home Assistant with the **[Claude Usage integration](https://github.com/trickv/hass-claude-usage)** installed and set up. Search for **Claude Usage** in HACS to install it. This card shows nothing without it.
+- Home Assistant with the **[Claude Usage integration](https://github.com/trickv/hass-claude-usage)** installed and set up. Search for **Claude Usage** in the Marketplace (or HACS before Home Assistant 2026.11) to install it. This card shows nothing without it.
 - The recorder (enabled by default) for the forecast and the mini history.
 
 ## Installation
 
-### HACS
+### Marketplace (Home Assistant 2026.11 and later)
+
+1. Settings → **Marketplace**, search for **Claude Usage Card** and install it
+2. Reload the browser
+
+If the card does not show up in the search yet, add it with **Add from link** and this repository's URL.
+
+### HACS (Home Assistant 2026.10 and older)
 
 1. Open HACS, search for **Claude Usage Card** and download it
 2. Reload the browser
@@ -134,6 +141,76 @@ type: custom:claude-usage-card
 style: synthwave
 ```
 
+### Paper
+
+Ink on paper: serif type, a double rule under the title and ink-blot markers.
+
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/paper.png" alt="Paper skin" width="400">
+
+```yaml
+type: custom:claude-usage-card
+style: paper
+```
+
+### Cupertino
+
+Apple-style look: translucent material, inset grouped list, system colors and rounded numbers. Follows the light or dark mode of your theme. Shown here with `status_colors: true`.
+
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/cupertino.png" alt="Cupertino skin" width="400">
+
+```yaml
+type: custom:claude-usage-card
+style: cupertino
+status_colors: true
+```
+
+### Shell
+
+A Linux terminal window with prompt, htop-style meters and the history as block characters. The prompt uses your Home Assistant user name and the name of your home.
+
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/shell.png" alt="Shell skin" width="400">
+
+```yaml
+type: custom:claude-usage-card
+style: shell
+status_colors: true
+show_history: true
+```
+
+### Material You
+
+Material 3 with the wavy progress indicator. Takes its colors from your theme, including the palette of the Material You utilities.
+
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/material.png" alt="Material You skin" width="400">
+
+```yaml
+type: custom:claude-usage-card
+style: material
+```
+
+### Dot matrix
+
+Every letter and number drawn in a 5×7 dot font, bars as rows of LED dots.
+
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/matrix.png" alt="Dot matrix skin" width="400">
+
+```yaml
+type: custom:claude-usage-card
+style: matrix
+status_colors: true
+```
+
+### E-ink
+
+Pure black and white without motion, for e-paper wall displays. Critical values are inverted.
+
+<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/eink.png" alt="E-ink skin" width="400">
+
+```yaml
+type: custom:claude-usage-card
+style: eink
+```
+
 The skins use their own colors. With `status_colors: true` they use the threshold colors (green, orange, red) instead. `font` switches the font, for example `font: monospace` or `font: custom` with `font_custom: "'Press Start 2P'"`.
 
 ## More examples
@@ -184,7 +261,7 @@ show_reset: false
 |---|---|---|
 | `title` | localized "Claude Usage" | Card title |
 | `show_title` | `true` | Show the title |
-| `style` | `default` | `default` (follows your theme), `minimal` (one compact line per limit), `terminal`, `retro` or `synthwave` |
+| `style` | `default` | `default` (follows your theme), `minimal` (one compact line per limit), or a skin: `terminal`, `retro`, `synthwave`, `paper`, `cupertino`, `shell`, `material`, `matrix`, `eink` |
 | `layout` | `bars` | `bars` (stacked), `columns` (side by side) or `rings` (style `default` only) |
 | `show_logo` | `true` | Show the logo |
 | `icon` | `mdi:creation` | MDI icon used as logo |
@@ -199,8 +276,8 @@ show_reset: false
 | `warning_threshold` | `60` | Percent from which the warning color is used |
 | `critical_threshold` | `85` | Percent from which the critical color is used |
 | `color_ok` / `color_warning` / `color_critical` | theme colors | Any CSS color or `[r, g, b]`. The visual editor shows the current theme colors and only writes `[r, g, b]` when you change a color |
-| `status_colors` | `false` | Skins: use threshold/severity colors instead of the skin palette |
-| `font` | `auto` | Skins: `auto` (pixel for terminal and synthwave, classic for retro), `pixel` (embedded VT323 subset), `classic`, `theme`, `monospace` or `custom` |
+| `status_colors` | `false` | Skins: use threshold/severity colors instead of the skin palette (`paper`, `cupertino`, `shell` and `matrix` use their own matching shades) |
+| `font` | `auto` | Skins: `auto` (pixel for terminal and synthwave, the skin's classic font for the others), `pixel` (embedded VT323 subset), `classic`, `theme`, `monospace` or `custom` |
 | `font_custom` | – | CSS `font-family` used when `font: custom` |
 | `color_values` | `true` | Color the percentages like the bars |
 | `show_reset` | `true` | Show the reset line |
@@ -220,7 +297,12 @@ The card ships without any third-party logo. To use your own image, put it into 
 
 ## Font
 
-The terminal and synthwave styles embed a subset of [VT323](https://github.com/phoikoi/VT323) (SIL Open Font License 1.1, see `fonts-OFL-VT323.txt`). The font is bundled in the JS file, so no external request is made.
+The terminal and synthwave styles embed a subset of [VT323](https://github.com/phoikoi/VT323) (SIL Open Font License 1.1, see `fonts-OFL-VT323.txt`). The dot matrix skin uses its own 5×7 dot font. Both are bundled in the JS file, so no external request is made. The other skins use fonts that are already on the device (for example SF Pro on Apple devices, Roboto on Android).
+
+## Development
+
+- `node test/forecast.test.js` and `node test/render.test.js` run the tests; the render test draws every style once.
+- `node tools/screenshots/shoot.mjs` renders `tools/screenshots/gallery.html` with sample data and writes all images in `docs/images/` (needs Playwright with Chromium).
 
 ## License
 

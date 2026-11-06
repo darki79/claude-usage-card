@@ -60,156 +60,33 @@ Add the card in the dashboard editor (search for **Claude Usage Card**) or in YA
 type: custom:claude-usage-card
 ```
 
-All screenshots below use the same data: session 46 %, weekly 63 %, Opus 88 %.
+All screenshots use the same data: session 46 %, weekly 63 %, Opus 88 %.
 
 ## Styles
 
-### Bars (default)
+<table>
+<tr><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/bars.png" alt="Bars (default)" width="250"><br><b>Bars (default)</b></td><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/columns.png" alt="Columns" width="250"><br><b>Columns</b></td><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/rings.png" alt="Rings" width="250"><br><b>Rings</b></td></tr>
+<tr><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/minimal.png" alt="Minimal" width="250"><br><b>Minimal</b></td><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/terminal.png" alt="Terminal" width="250"><br><b>Terminal</b></td><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/retro.png" alt="Retro window" width="250"><br><b>Retro window</b></td></tr>
+<tr><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/synthwave.png" alt="Synthwave" width="250"><br><b>Synthwave</b></td><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/paper.png" alt="Paper" width="250"><br><b>Paper</b></td><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/cupertino.png" alt="Cupertino" width="250"><br><b>Cupertino</b></td></tr>
+<tr><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/shell.png" alt="Shell" width="250"><br><b>Shell</b></td><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/material.png" alt="Material You" width="250"><br><b>Material You</b></td><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/matrix.png" alt="Dot matrix" width="250"><br><b>Dot matrix</b></td></tr>
+<tr><td align="center" valign="top" width="33%"><img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/eink.png" alt="E-ink" width="250"><br><b>E-ink</b></td></tr>
+</table>
 
-Stacked bars that follow your Home Assistant theme. Shown here with the optional mini history.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/bars.png" alt="Bars layout" width="400">
-
-```yaml
-type: custom:claude-usage-card
-show_history: true
-history_hours: 6
-```
-
-### Columns
-
-Bars side by side, one column per limit. Good for wide cards.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/columns.png" alt="Columns layout" width="520">
-
-```yaml
-type: custom:claude-usage-card
-layout: columns
-```
-
-### Rings
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/rings.png" alt="Rings layout" width="460">
-
-```yaml
-type: custom:claude-usage-card
-layout: rings
-```
-
-### Minimal
-
-One compact line per limit with percentage and time to reset. A warning icon appears when the forecast says the limit will be reached before the reset.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/minimal.png" alt="Minimal style" width="360">
-
-```yaml
-type: custom:claude-usage-card
-style: minimal
-title: Claude
-```
-
-### Terminal
-
-Amber CRT look with scanlines and the embedded pixel font.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/terminal.png" alt="Terminal skin" width="380">
-
-```yaml
-type: custom:claude-usage-card
-style: terminal
-```
-
-### Retro window
-
-A 90s desktop window with segmented progress bars.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/retro.png" alt="Retro window skin" width="380">
-
-```yaml
-type: custom:claude-usage-card
-style: retro
-```
-
-### Synthwave
-
-Neon sunset with a perspective grid.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/synthwave.png" alt="Synthwave skin" width="380">
-
-```yaml
-type: custom:claude-usage-card
-style: synthwave
-```
-
-### Paper
-
-Ink on paper: serif type, a double rule under the title and ink-blot markers.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/paper.png" alt="Paper skin" width="400">
-
-```yaml
-type: custom:claude-usage-card
-style: paper
-```
-
-### Cupertino
-
-Apple-style look: translucent material, inset grouped list, system colors and rounded numbers. Follows the light or dark mode of your theme. Shown here with `status_colors: true`.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/cupertino.png" alt="Cupertino skin" width="400">
-
-```yaml
-type: custom:claude-usage-card
-style: cupertino
-status_colors: true
-```
-
-### Shell
-
-A Linux terminal window with prompt, htop-style meters and the history as block characters. The prompt uses your Home Assistant user name and the name of your home.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/shell.png" alt="Shell skin" width="400">
-
-```yaml
-type: custom:claude-usage-card
-style: shell
-status_colors: true
-show_history: true
-```
-
-### Material You
-
-Material 3 with the wavy progress indicator. Takes its colors from your theme, including the palette of the Material You utilities.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/material.png" alt="Material You skin" width="400">
-
-```yaml
-type: custom:claude-usage-card
-style: material
-```
-
-### Dot matrix
-
-Every letter and number drawn in a 5×7 dot font, bars as rows of LED dots.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/matrix.png" alt="Dot matrix skin" width="400">
-
-```yaml
-type: custom:claude-usage-card
-style: matrix
-status_colors: true
-```
-
-### E-ink
-
-Pure black and white without motion, for e-paper wall displays. Critical values are inverted.
-
-<img src="https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/eink.png" alt="E-ink skin" width="400">
-
-```yaml
-type: custom:claude-usage-card
-style: eink
-```
+| Style | Look | Config |
+|---|---|---|
+| Bars | Stacked bars that follow your Home Assistant theme (shown with the mini history) | `show_history: true` |
+| Columns | Bars side by side, one column per limit, good for wide cards | `layout: columns` |
+| Rings | One ring per limit | `layout: rings` |
+| Minimal | One compact line per limit; a warning icon when the forecast says the limit is reached before the reset | `style: minimal` |
+| Terminal | Amber CRT with scanlines and the embedded pixel font | `style: terminal` |
+| Retro window | 90s desktop window with segmented progress bars | `style: retro` |
+| Synthwave | Neon sunset with a perspective grid | `style: synthwave` |
+| Paper | Ink on paper: serif type, a double rule under the title, ink-blot markers | `style: paper` |
+| Cupertino | Apple-style material, inset grouped list, system colors; follows light or dark mode (shown with `status_colors: true`) | `style: cupertino` |
+| Shell | Linux terminal with prompt, htop-style meters and the history as block characters; the prompt uses your user name and the name of your home | `style: shell` |
+| Material You | Material 3 with the wavy progress indicator, colors from your theme | `style: material` |
+| Dot matrix | Text and numbers in a 5×7 dot font, bars as rows of LED dots | `style: matrix` |
+| E-ink | Pure black and white without motion, for e-paper wall displays; critical values are inverted | `style: eink` |
 
 The skins use their own colors. With `status_colors: true` they use the threshold colors (green, orange, red) instead. `font` switches the font, for example `font: monospace` or `font: custom` with `font_custom: "'Press Start 2P'"`.
 

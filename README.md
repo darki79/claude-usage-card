@@ -1,4 +1,4 @@
-# Claude Usage Card
+![Claude Usage Card](https://raw.githubusercontent.com/darki79/claude-usage-card/main/docs/images/header.png)
 
 A Lovelace card that shows your Claude subscription limits (5-hour session, weekly limits, per-model limits, extra usage) as bars, rings or one of nine skins, with a countdown to each reset.
 

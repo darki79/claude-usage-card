@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.1
+
+Just a quick fix: the card now tells you why it is empty.
+
+- When the sensors have no data, the card no longer says "No Claude Usage sensors found". It shows **"Claude sign-in expired"** when the integration asks you to sign in again, or **"Claude Usage has no data right now"** with the time since the last data and the reason the integration reports.
+- For admins, a tap on the message opens the integration page. Other users see the message without the link, because Home Assistant shows the integration status to admins only.
+- The old hint stays for the case where the integration is not installed.
+- Works in every style and skin, in English and German. The render test covers the new cases.
+
 ## 1.1.0
 
 ### New skins

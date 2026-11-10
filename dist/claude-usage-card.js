@@ -6,7 +6,7 @@
  * License: MIT
  */
 (() => {
-  const CARD_VERSION = "1.1.0";
+  const CARD_VERSION = "1.1.1";
   const CARD_TAG = "claude-usage-card";
   const EDITOR_TAG = "claude-usage-card-editor";
   const INTEGRATION_DOMAIN = "hass_claude_usage";
@@ -94,6 +94,12 @@
       no_sensors:
         "No Claude Usage sensors found. Install the Claude Usage integration or select sensors in the card editor.",
       extra_usage: "Extra usage",
+      st_auth: "Claude sign-in expired",
+      st_auth_hint: "Sign in again under Settings → Devices & services → Claude Usage.",
+      st_down: "Claude Usage has no data right now",
+      st_since: "No data for {t}.",
+      st_reason: "The integration reports: {r}",
+      st_open: "Tap to open the integration.",
       credits: "{used} of {limit} credits",
       api_error: "API error ({v})",
       fc_hit: "Limit hit {t}",
@@ -190,6 +196,12 @@
       no_sensors:
         "Keine Claude-Usage-Sensoren gefunden. Installiere die Integration Claude Usage oder wähle Sensoren im Karteneditor.",
       extra_usage: "Extra Usage",
+      st_auth: "Claude-Anmeldung abgelaufen",
+      st_auth_hint: "Melde dich unter Einstellungen → Geräte & Dienste → Claude Usage neu an.",
+      st_down: "Claude Usage liefert gerade keine Daten",
+      st_since: "Seit {t} keine Daten.",
+      st_reason: "Die Integration meldet: {r}",
+      st_open: "Tippen öffnet die Integration.",
       credits: "{used} von {limit} Credits",
       api_error: "API-Fehler ({v})",
       fc_hit: "Limit erreicht {t}",
@@ -472,6 +484,12 @@
       });
       root.addEventListener("keydown", (ev) => {
         if (ev.key !== "Enter" && ev.key !== " ") return;
+        const nav = this._navTarget(ev);
+        if (nav) {
+          ev.preventDefault();
+          this._navigate(nav);
+          return;
+        }
         const id = this._targetId(ev);
         if (id) {
           ev.preventDefault();
@@ -723,6 +741,7 @@
       if (!this._hass || !this._config) return "";
       const ids = this._limitIds();
       const ex = this._accounts(ids).flatMap((a) => Object.values(a.ex));
+      if (!ids.length) ex.push(...this._registryIds());
       return (
         [...ids, ...ex]
           .map((id) => {
@@ -879,6 +898,62 @@
       return { id: acc.ex.error, value: multi && acc.name ? `${err.state}, ${acc.name}` : err.state };
     }
 
+    // ------------------------------------------------------------ integration status
+
+    // sensors of the integration from the entity registry; found even while they have no data
+    _registryIds() {
+      const ents = (this._hass && this._hass.entities) || {};
+      const f = this._config.filter;
+      return Object.keys(ents).filter(
+        (id) => id.startsWith("sensor.") && ents[id].platform === INTEGRATION_DOMAIN && (!f || id.includes(f))
+      );
+    }
+
+    // Why the card has nothing to show. Config entries and flows are admin-only in Home Assistant.
+    async _fetchStatus() {
+      const h = this._hass;
+      if (!h || typeof h.callWS !== "function" || !(h.user && h.user.is_admin)) return;
+      if (this._statusLoading || (this._statusAt && Date.now() - this._statusAt < 60e3)) return;
+      this._statusLoading = true;
+      const info = { admin: true, reauth: false, state: null, reason: null };
+      try {
+        const entries = (await h.callWS({ type: "config_entries/get", domain: INTEGRATION_DOMAIN })) || [];
+        const bad = entries.find((e) => e.state && e.state !== "loaded");
+        info.state = bad ? bad.state : entries.length ? "loaded" : null;
+        info.reason = bad && bad.reason ? String(bad.reason) : null;
+        const flows = (await h.callWS({ type: "config_entries/flow/progress" })) || [];
+        info.reauth = flows.some((fl) => fl.handler === INTEGRATION_DOMAIN && fl.context && fl.context.source === "reauth");
+      } catch (e) {
+        info.admin = false;
+      } finally {
+        this._status = info;
+        this._statusAt = Date.now();
+        this._statusLoading = false;
+        this._render();
+      }
+    }
+
+    _emptyHtml(S) {
+      const reg = this._registryIds();
+      if (!reg.length) return esc(S.no_sensors);
+      const st = this._status || {};
+      const lines = [];
+      if (st.reauth) lines.push(`<span class="st-title">${esc(S.st_auth)}</span>`, esc(S.st_auth_hint));
+      else {
+        lines.push(`<span class="st-title">${esc(S.st_down)}</span>`);
+        let since = 0;
+        for (const id of reg) {
+          const t = new Date((this._hass.states[id] || {}).last_changed || 0).getTime();
+          if (Number.isFinite(t)) since = Math.max(since, t);
+        }
+        if (since) lines.push(esc(fmt(S.st_since, { t: this._duration(Date.now() - since, S) })));
+        if (st.reason) lines.push(esc(fmt(S.st_reason, { r: st.reason })));
+      }
+      if (st.admin) lines.push(`<span class="st-open">${esc(S.st_open)}</span>`);
+      const nav = st.admin ? ` data-nav="/config/integrations/integration/${INTEGRATION_DOMAIN}" role="link" tabindex="0"` : "";
+      return `<span class="st"${nav}>${lines.map((l) => `<span class="st-line">${l}</span>`).join("")}</span>`;
+    }
+
     // ------------------------------------------------------------ shared bits
 
     _logo(defaultColor) {
@@ -996,7 +1071,7 @@
             }</div>`
           : "";
       let body;
-      if (!items.length) body = `<div class="empty">${esc(S.no_sensors)}</div>`;
+      if (!items.length) body = `<div class="empty">${this._emptyHtml(S)}</div>`;
       else if (c.layout === "rings")
         body = `<div class="rings">${items.map((it) => this._ring(it)).join("")}</div>`;
       else if (c.layout === "columns") {
@@ -1057,7 +1132,7 @@
           ${
             all.length
               ? `<div class="m-grid" style="grid-template-columns:${cols}">${rows}</div>`
-              : `<div class="empty">${esc(S.no_sensors)}</div>`
+              : `<div class="empty">${this._emptyHtml(S)}</div>`
           }
           ${this._staleHtml(S, "error stale m-error")}
           ${this._errorHtml(err, S, "error m-error")}
@@ -1094,7 +1169,7 @@
             ${
               all.length
                 ? `<div class="t-grid" style="grid-template-columns:repeat(${cols},1fr)">${cells}</div>`
-                : `<div class="t-empty">${esc(S.no_sensors)}</div>`
+                : `<div class="t-empty">${this._emptyHtml(S)}</div>`
             }
             ${c.show_logo ? `<div class="t-logo">${this._logo(TERMINAL_COLOR)}</div>` : ""}
             ${this._staleHtml(S, "t-error t-stale")}
@@ -1133,7 +1208,7 @@
             </div>
             <div class="w-body">
               ${c.show_logo ? `<div class="w-logo">${this._logo("#808080")}</div><div class="w-sep"></div>` : ""}
-              ${all.length ? rows : `<div class="w-sub">${esc(S.no_sensors)}</div>`}
+              ${all.length ? rows : `<div class="w-sub">${this._emptyHtml(S)}</div>`}
               ${this._staleHtml(S, "w-error w-stale")}
               ${this._errorHtml(err, S, "w-error")}
             </div>
@@ -1175,7 +1250,7 @@
               <div class="s-grid"></div>
             </div>
           </div>
-          <div class="s-rows">${all.length ? rows : `<div class="s-sub">${esc(S.no_sensors)}</div>`}</div>
+          <div class="s-rows">${all.length ? rows : `<div class="s-sub">${this._emptyHtml(S)}</div>`}</div>
           ${this._staleHtml(S, "s-error s-stale")}
           ${this._errorHtml(err, S, "s-error")}
         </ha-card>`;
@@ -1221,7 +1296,7 @@
       return `
         <ha-card class="skin paper">
           ${head}
-          ${all.length ? rows : `<div class="p-sub">${esc(S.no_sensors)}</div>`}
+          ${all.length ? rows : `<div class="p-sub">${this._emptyHtml(S)}</div>`}
           ${this._staleHtml(S, "p-error p-stale")}
           ${this._errorHtml(err, S, "p-error")}
         </ha-card>`;
@@ -1264,7 +1339,7 @@
       return `
         <ha-card class="skin material">
           ${head}
-          ${all.length ? rows : `<div class="mu-sub">${esc(S.no_sensors)}</div>`}
+          ${all.length ? rows : `<div class="mu-sub">${this._emptyHtml(S)}</div>`}
           ${this._staleHtml(S, "mu-note mu-stale")}
           ${this._errorHtml(err, S, "mu-note mu-error")}
         </ha-card>`;
@@ -1305,7 +1380,7 @@
       return `
         <ha-card class="skin matrix">
           ${c.show_title ? `<div class="dm-title">${dotText(c.title || S.skin_title, "dm-head-text", MATRIX.accent)}</div>` : ""}
-          ${all.length ? rows : `<div class="dm-note">${esc(S.no_sensors)}</div>`}
+          ${all.length ? rows : `<div class="dm-note">${this._emptyHtml(S)}</div>`}
           ${notes}
         </ha-card>`;
     }
@@ -1341,7 +1416,7 @@
       return `
         <ha-card class="skin eink">
           ${head}
-          ${all.length ? rows : `<div class="ei-sub">${esc(S.no_sensors)}</div>`}
+          ${all.length ? rows : `<div class="ei-sub">${this._emptyHtml(S)}</div>`}
           ${this._staleHtml(S, "ei-note")}
           ${this._errorHtml(err, S, "ei-note ei-warn")}
         </ha-card>`;
@@ -1413,7 +1488,7 @@
           }
           <div class="sh-body">
             <div class="sh-line">${prompt} <span class="sh-cmd">claude-usage status</span></div>
-            ${all.length ? `<div class="sh-grid">${rows}</div>` : `<div class="sh-msg sh-err">${esc(S.no_sensors)}</div>`}
+            ${all.length ? `<div class="sh-grid">${rows}</div>` : `<div class="sh-msg sh-err">${this._emptyHtml(S)}</div>`}
             ${msgs}
             <div class="sh-line">${prompt} <span class="sh-cursor"></span></div>
           </div>
@@ -1454,7 +1529,7 @@
       return `
         <ha-card class="skin cupertino ${dark ? "cu-dark" : "cu-light"}" style="--cu-tint:${pal.tint};--cu-red:${pal.critical};--cu-orange:${pal.warning}">
           ${head}
-          ${all.length ? `<div class="cu-group">${rows}</div>` : `<div class="cu-sub">${esc(S.no_sensors)}</div>`}
+          ${all.length ? `<div class="cu-group">${rows}</div>` : `<div class="cu-sub">${this._emptyHtml(S)}</div>`}
           ${this._staleHtml(S, "cu-note cu-stale")}
           ${this._errorHtml(err, S, "cu-note cu-error")}
         </ha-card>`;
@@ -1466,7 +1541,13 @@
       if (!this._config || !this._hass) return;
       const c = this._config;
       const S = strings(this._hass);
-      const items = this._items();
+      let items = this._items();
+      // sensors without any value (expired sign-in, integration down): show why instead of empty rows
+      const noData = !items.some((it) => it.value != null);
+      if (noData) {
+        items = [];
+        if (this._registryIds().length) this._fetchStatus();
+      } else this._status = null;
       this._itemsCount = items.length;
       const accs = items.length ? this._accounts(items.map((i) => i.id)) : [];
       const multi = accs.length > 1;
@@ -1561,7 +1642,22 @@
       }
     }
 
+    _navTarget(ev) {
+      const el = ev.composedPath().find((n) => n.dataset && n.dataset.nav);
+      return el ? el.dataset.nav : null;
+    }
+
+    _navigate(path) {
+      history.pushState(null, "", path);
+      window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
+    }
+
     _onUp(ev) {
+      const nav = this._navTarget(ev);
+      if (nav) {
+        this._navigate(nav);
+        return;
+      }
       clearTimeout(this._holdT);
       const id = this._targetId(ev);
       if (!id || id !== this._downId || this._held) return;
@@ -1649,6 +1745,21 @@
     .s-stale { color: #f9c80e; }
     [role="button"]:focus-visible { outline: 2px solid var(--primary-color, #03a9f4); outline-offset: 2px; border-radius: 4px; }
     .m-row[role="button"]:focus-visible { outline: none; }
+
+    /* ---------- status when there is no data ---------- */
+    .st { display: flex; flex-direction: column; gap: 2px; line-height: 1.35; }
+    .st-line { display: block; }
+    .st-title { font-weight: 700; font-size: 1.08em; }
+    .st-open { opacity: .75; font-size: .92em; }
+    .st[data-nav] { cursor: pointer; }
+    .st[data-nav]:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 4px; }
+    .sh-msg:has(.st) { display: block; white-space: normal; }
+    .sh-msg .st { display: inline; }
+    .sh-msg .st-line { display: block; }
+    .sh-msg .st-line:first-child { display: inline; margin-left: 1ch; }
+    .sh-msg .st-title { font-size: 1em; }
+    .sh-msg .st-line + .st-line { color: #8a8a8a; opacity: 1; font-size: 1em; }
+    .sh-msg .st-line + .st-line::before { content: "# "; }
 
     /* ---------- minimal ---------- */
     ha-card.minimal { padding: 10px 14px; }

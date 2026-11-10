@@ -24,6 +24,7 @@ The card only reads sensors. The data comes from the **[Claude Usage integration
 - Mini history: sparkline of the last hours
 - Configurable tap, hold and double tap actions (default: more-info)
 - Hint when the data is stale, for example during an API rate limit
+- Tells you why it is empty: expired Claude sign-in or no data from the integration, with a link to the integration for admins
 - Several accounts in one card: labels, extra usage and API errors show the account name (or use `filter` for one card per account)
 
 ## Requirements

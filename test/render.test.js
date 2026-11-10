@@ -116,6 +116,50 @@ cases.push({ style: "default", show_title: false, show_logo: false, show_pace: f
   assert.ok(cup.shadowRoot.innerHTML.includes("cu-dark"), "cupertino follows dark mode");
   cup.disconnectedCallback();
 
+  // no data: the card explains why (expired sign-in, integration down, not installed)
+  const down = {};
+  for (const id of ids) down[id] = { state: "unavailable", last_changed: new Date(now - 2 * HOUR).toISOString(), attributes: {} };
+  const registry = Object.fromEntries(ids.map((id) => [id, { entity_id: id, platform: "hass_claude_usage" }]));
+  const statusHass = (lang, { admin = true, reauth = false, entries = [{ state: "loaded" }], reg = registry } = {}) => ({
+    ...hassFor(lang, false),
+    states: down,
+    entities: reg,
+    user: { name: "Anna Müller", is_admin: admin },
+    callWS: async (msg) => {
+      if (msg.type === "config_entries/get") return entries;
+      if (msg.type === "config_entries/flow/progress")
+        return reauth ? [{ handler: "hass_claude_usage", context: { source: "reauth" } }] : [];
+      return {};
+    },
+  });
+  const statusHtml = async (style, opts, lang = "en") => {
+    const card = new Card();
+    card.setConfig({ style });
+    card.hass = statusHass(lang, opts);
+    for (let i = 0; i < 3; i++) await new Promise((r) => setTimeout(r, 0)); // let the status requests resolve
+    const html = card.shadowRoot.innerHTML;
+    card.disconnectedCallback();
+    for (const bad of ["undefined", "NaN", "[object Object]"])
+      assert.ok(!html.includes(bad), `${style} status: output contains "${bad}"`);
+    return html;
+  };
+  const NAV = 'data-nav="/config/integrations/integration/hass_claude_usage"';
+  for (const style of STYLES) {
+    let html = await statusHtml(style, { reauth: true });
+    assert.ok(html.includes("Claude sign-in expired") && html.includes(NAV), `${style}: reauth message`);
+    for (const id of ids) assert.ok(!html.includes(`data-entity="${id}"`), `${style}: no empty rows`);
+    html = await statusHtml(style, { reauth: true }, "de");
+    assert.ok(html.includes("Claude-Anmeldung abgelaufen"), `${style}: German reauth message`);
+    html = await statusHtml(style, { entries: [{ state: "setup_retry", reason: "Timeout" }] });
+    assert.ok(html.includes("Claude Usage has no data right now"), `${style}: integration down`);
+    assert.ok(html.includes("The integration reports: Timeout"), `${style}: reason from the config entry`);
+    assert.ok(html.includes("No data for 2"), `${style}: time since the last data`);
+    html = await statusHtml(style, { admin: false });
+    assert.ok(html.includes("Claude Usage has no data right now") && !html.includes("data-nav=\""), `${style}: non-admin`);
+    html = await statusHtml(style, { reg: {} });
+    assert.ok(!html.includes('class="st"'), `${style}: not installed keeps the old hint`);
+  }
+
   // the card rejects unknown styles
   assert.throws(() => new Card().setConfig({ style: "nope" }));
 

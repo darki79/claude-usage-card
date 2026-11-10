@@ -915,11 +915,10 @@
       if (!h || typeof h.callWS !== "function" || !(h.user && h.user.is_admin)) return;
       if (this._statusLoading || (this._statusAt && Date.now() - this._statusAt < 60e3)) return;
       this._statusLoading = true;
-      const info = { admin: true, reauth: false, state: null, reason: null };
+      const info = { admin: true, reauth: false, reason: null };
       try {
         const entries = (await h.callWS({ type: "config_entries/get", domain: INTEGRATION_DOMAIN })) || [];
         const bad = entries.find((e) => e.state && e.state !== "loaded");
-        info.state = bad ? bad.state : entries.length ? "loaded" : null;
         info.reason = bad && bad.reason ? String(bad.reason) : null;
         const flows = (await h.callWS({ type: "config_entries/flow/progress" })) || [];
         info.reauth = flows.some((fl) => fl.handler === INTEGRATION_DOMAIN && fl.context && fl.context.source === "reauth");

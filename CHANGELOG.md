@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0
+
+- **Smooth updates**: the card now updates in place instead of redrawing itself. Bars and rings glide to new values, and the Material You wave no longer restarts every minute.
+- **New option `show_forecast_ok`**: turn off "Lasts until reset" and see the forecast only when the limit will be hit. Also in the visual editor.
+- **New languages**: French, Spanish and Dutch, for the card and the visual editor.
+- **Several accounts**: the "sign-in expired" and "no data" messages now come from the account the card shows, not from any account.
+- `warning_threshold` greater than `critical_threshold` is now reported as a configuration error. Before, the warning color silently never showed.
+- README: example automation for a notification at 80 % of the session limit.
+
 ## 1.1.1
 
 Just a quick fix: the card now tells you why it is empty.

@@ -70,6 +70,7 @@ const hassFor = (lang, dark) => ({
 });
 
 const STYLES = ["default", "minimal", "terminal", "retro", "synthwave", "paper", "cupertino", "shell", "material", "matrix", "eink"];
+const LANGS = [["en", false], ["de", true], ["fr", false], ["es", true], ["nl", false]];
 const cases = [];
 for (const style of STYLES) {
   cases.push({ style });
@@ -80,7 +81,7 @@ cases.push({ style: "default", show_title: false, show_logo: false, show_pace: f
 
 (async () => {
   for (const cfg of cases) {
-    for (const [lang, dark] of [["en", false], ["de", true]]) {
+    for (const [lang, dark] of LANGS) {
       const card = new Card();
       card.setConfig({ type: "custom:claude-usage-card", ...cfg });
       card.hass = hassFor(lang, dark);
@@ -120,15 +121,16 @@ cases.push({ style: "default", show_title: false, show_logo: false, show_pace: f
   const down = {};
   for (const id of ids) down[id] = { state: "unavailable", last_changed: new Date(now - 2 * HOUR).toISOString(), attributes: {} };
   const registry = Object.fromEntries(ids.map((id) => [id, { entity_id: id, platform: "hass_claude_usage" }]));
-  const statusHass = (lang, { admin = true, reauth = false, entries = [{ state: "loaded" }], reg = registry } = {}) => ({
+  const statusHass = (lang, { admin = true, reauth = false, entries = [{ state: "loaded" }], reg = registry, devices = {} } = {}) => ({
     ...hassFor(lang, false),
     states: down,
     entities: reg,
+    devices,
     user: { name: "Anna Müller", is_admin: admin },
     callWS: async (msg) => {
       if (msg.type === "config_entries/get") return entries;
       if (msg.type === "config_entries/flow/progress")
-        return reauth ? [{ handler: "hass_claude_usage", context: { source: "reauth" } }] : [];
+        return reauth ? [{ handler: "hass_claude_usage", context: { source: "reauth", entry_id: reauth } }] : [];
       return {};
     },
   });
@@ -160,8 +162,26 @@ cases.push({ style: "default", show_title: false, show_logo: false, show_pace: f
     assert.ok(!html.includes('class="st"'), `${style}: not installed keeps the old hint`);
   }
 
-  // the card rejects unknown styles
+  // two accounts: a card for one account ignores the other account's broken entry and reauth flow
+  const own = await statusHtml("default", {
+    reg: Object.fromEntries(ids.map((id) => [id, { entity_id: id, platform: "hass_claude_usage", device_id: "d1" }])),
+    devices: { d1: { config_entries: ["e1"] } },
+    entries: [{ entry_id: "e1", state: "loaded" }, { entry_id: "e2", state: "setup_retry", reason: "Other account" }],
+    reauth: "e2",
+  });
+  assert.ok(own.includes("has no data right now"), "own account: no data message");
+  assert.ok(!own.includes("Other account") && !own.includes("sign-in expired"), "own account: other account ignored");
+
+  // every language has exactly the keys of English
+  const src = require("node:fs").readFileSync(require.resolve("../dist/claude-usage-card.js"), "utf8");
+  const STRINGS = eval(`(${src.match(/const STRINGS = (\{[\s\S]*?\n  \});/)[1]})`);
+  const keys = (o) => Object.keys(o).flatMap((k) => (typeof o[k] === "object" ? keys(o[k]).map((x) => `${k}.${x}`) : [k])).sort();
+  for (const lang of Object.keys(STRINGS)) assert.deepStrictEqual(keys(STRINGS[lang]), keys(STRINGS.en), `strings: ${lang}`);
+  assert.deepStrictEqual(Object.keys(STRINGS), LANGS.map((l) => l[0]), "render test covers every language");
+
+  // the card rejects unknown styles and thresholds in the wrong order
   assert.throws(() => new Card().setConfig({ style: "nope" }));
+  assert.throws(() => new Card().setConfig({ warning_threshold: 90 }));
 
   // editor: the layout field only shows for the default style
   const fieldNames = (schema) => JSON.stringify(schema).match(/"name":"(style|layout)"/g) || [];
@@ -173,7 +193,7 @@ cases.push({ style: "default", show_title: false, show_logo: false, show_pace: f
     assert.strictEqual(names.includes('"name":"layout"'), expectLayout, `editor layout field for ${style}`);
   }
 
-  console.log(`render tests passed (${cases.length * 2} renders)`);
+  console.log(`render tests passed (${cases.length * LANGS.length} renders)`);
 })().catch((e) => {
   console.error(e);
   process.exit(1);

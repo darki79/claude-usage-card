@@ -43,6 +43,13 @@ assert.deepStrictEqual(forecast("session", 20, 2, [[3, 20]]), { text: "ok", warn
 fc = forecast("weekly_all", 5, 7 * 24 - 2, [[24, 80], [2, 0]]);
 assert.ok(fc.warn && fc.text.startsWith("hit"), JSON.stringify(fc));
 
+// show_forecast_ok: false hides "lasts until reset", warnings stay
+card.setConfig({ show_forecast_ok: false });
+assert.strictEqual(forecast("session", 10, 3, [[2, 0]]), null);
+fc = forecast("session", 40, 3, [[2, 0], [0.5, 30]]);
+assert.ok(fc.warn && fc.text.startsWith("hit"), JSON.stringify(fc));
+card.setConfig({});
+
 // limit used up
 assert.deepStrictEqual(forecast("session", 100, 1, []), { text: "reached", warn: true });
 

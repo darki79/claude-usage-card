@@ -18,7 +18,7 @@ The card only reads sensors. The data comes from the **[Claude Usage integration
 - Colors by your own thresholds or by the `severity` the API reports
 - Configurable logo: any MDI icon or your own image
 - Extra usage (only when enabled) and API error hint
-- Visual editor, English and German
+- Visual editor; English, German, French, Spanish and Dutch
 - Pace marker: shows where you would be with even usage across the period
 - Forecast: when the limit will be reached at the current rate (from HA history)
 - Mini history: sparkline of the last hours
@@ -106,6 +106,22 @@ names:
   sensor.claude_usage_my_account_weekly_all_models_limit_usage: Week
 ```
 
+Get a notification at 80 % of the session limit. The card itself cannot notify, but an automation on the same sensor can:
+
+```yaml
+automation:
+  - alias: Claude session limit at 80 %
+    triggers:
+      - trigger: numeric_state
+        entity_id: sensor.claude_usage_my_account_session_limit_usage
+        above: 80
+    actions:
+      - action: notify.notify
+        data:
+          title: Claude
+          message: "Session limit at {{ states('sensor.claude_usage_my_account_session_limit_usage') }} %"
+```
+
 One card per account when you have several:
 
 ```yaml
@@ -151,7 +167,7 @@ show_reset: false
 | `filter` | – | Only auto-detect sensors whose entity ID contains this text (useful with several accounts) |
 | `names` | `{}` | Custom labels per entity ID (also editable in the visual editor) |
 | `color_mode` | `threshold` | `threshold` or `severity` |
-| `warning_threshold` | `60` | Percent from which the warning color is used |
+| `warning_threshold` | `60` | Percent from which the warning color is used; must not be greater than `critical_threshold` |
 | `critical_threshold` | `85` | Percent from which the critical color is used |
 | `color_ok` / `color_warning` / `color_critical` | theme colors | Any CSS color or `[r, g, b]`. The visual editor shows the current theme colors and only writes `[r, g, b]` when you change a color |
 | `status_colors` | `false` | Skins: use threshold/severity colors instead of the skin palette (`paper`, `cupertino`, `shell` and `matrix` use their own matching shades) |
@@ -164,6 +180,7 @@ show_reset: false
 | `show_api_error` | `true` | Show a hint when the integration reports API errors |
 | `show_pace` | `true` | Marker for even usage (session = 5 h, weekly = 7 days) |
 | `show_forecast` | `true` | Projected time the limit is reached; rate from the last hour (session) or last 24 h (weekly) |
+| `show_forecast_ok` | `true` | Also show "Lasts until reset" when the limit will not be reached; `false` shows the forecast only as a warning |
 | `show_history` | `false` | Sparkline of the last hours from HA history |
 | `stale_minutes` | `30` | Show "Last update … ago" when no fresh data arrived for this many minutes (`0` = off) |
 | `tap_action` / `hold_action` / `double_tap_action` | `more-info` / `none` / `none` | Standard Home Assistant actions; `entity` is the tapped sensor |

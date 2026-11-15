@@ -6,7 +6,7 @@
  * License: MIT
  */
 (() => {
-  const CARD_VERSION = "1.1.1";
+  const CARD_VERSION = "1.2.0";
   const CARD_TAG = "claude-usage-card";
   const EDITOR_TAG = "claude-usage-card-editor";
   const INTEGRATION_DOMAIN = "hass_claude_usage";
@@ -42,6 +42,7 @@
     show_api_error: true,
     show_pace: true, // marker for even usage across the period
     show_forecast: true, // projected time the limit is reached (needs history)
+    show_forecast_ok: true, // also show "Lasts until reset" when the limit is not reached
     show_history: false, // sparkline of the last hours (needs history)
     history_hours: 6,
     stale_minutes: 30, // hint when data is older than this (0 = off)
@@ -165,6 +166,7 @@
         analysis: "Pace, forecast and history",
         show_pace: "Pace marker",
         show_forecast: "Forecast",
+        show_forecast_ok: "Show “Lasts until reset”",
         show_history: "Mini history",
         history_hours: "History (hours)",
         stale_minutes: "Old data hint after (min, 0 = off)",
@@ -267,6 +269,7 @@
         analysis: "Tempo, Prognose und Verlauf",
         show_pace: "Tempo-Markierung",
         show_forecast: "Prognose",
+        show_forecast_ok: "„Reicht bis zum Reset“ anzeigen",
         show_history: "Mini-Verlauf",
         history_hours: "Verlauf (Stunden)",
         stale_minutes: "Hinweis auf alte Daten ab (Min, 0 = aus)",
@@ -279,6 +282,315 @@
         tap_action: "Aktion bei Tippen",
         hold_action: "Aktion bei Halten",
         double_tap_action: "Aktion bei Doppeltippen",
+      },
+    },
+    fr: {
+      title: "Utilisation de Claude",
+      skin_title: "Claude",
+      usage_word: "Utilisation",
+      session: "Session (5 h)",
+      weekly_all: "Semaine · tous les modèles",
+      week: "Semaine",
+      s_session: "Session",
+      s_weekly: "Semaine",
+      used: "utilisé",
+      resets_in: "Réinitialisation dans {t}",
+      resets_in_short: "Réinit. dans {t}",
+      resets_now: "Réinitialisation en cours",
+      unavailable: "indisponible",
+      no_sensors:
+        "Aucun capteur Claude Usage trouvé. Installez l'intégration Claude Usage ou choisissez des capteurs dans l'éditeur de la carte.",
+      extra_usage: "Utilisation supplémentaire",
+      st_auth: "Connexion à Claude expirée",
+      st_auth_hint: "Reconnectez-vous sous Paramètres → Appareils et services → Claude Usage.",
+      st_down: "Claude Usage ne fournit pas de données pour le moment",
+      st_since: "Aucune donnée depuis {t}.",
+      st_reason: "L'intégration signale : {r}",
+      st_open: "Touchez pour ouvrir l'intégration.",
+      credits: "{used} sur {limit} crédits",
+      api_error: "Erreur API ({v})",
+      fc_hit: "Limite atteinte {t}",
+      fc_ok: "Suffit jusqu'à la réinitialisation",
+      fc_reached: "Limite épuisée",
+      pace_title: "{p} % de la période sont écoulés",
+      stale: "Dernière mise à jour il y a {t}",
+      d: "j",
+      h: "h",
+      min: "min",
+      ed: {
+        title: "Titre",
+        show_title: "Afficher le titre",
+        style: "Style",
+        style_default: "Standard (thème)",
+        style_minimal: "Minimal (compact)",
+        style_terminal: "Terminal",
+        style_retro: "Fenêtre rétro",
+        style_synthwave: "Synthwave",
+        style_paper: "Papier",
+        style_cupertino: "Cupertino",
+        style_shell: "Shell (terminal Linux)",
+        style_material: "Material You",
+        style_matrix: "Matrice de points",
+        style_eink: "Encre électronique",
+        layout: "Disposition (style standard)",
+        layout_bars: "Barres empilées",
+        layout_columns: "Barres côte à côte",
+        layout_rings: "Anneaux",
+        color_mode: "Couleurs",
+        color_threshold: "Selon les seuils",
+        color_severity: "Selon la gravité de l'API",
+        logo: "Logo et titre",
+        show_logo: "Afficher le logo",
+        icon: "Icône",
+        logo_url: "URL de l'image (remplace l'icône, p. ex. /local/logo.svg)",
+        logo_color: "Couleur de l'icône",
+        logo_size: "Taille du logo (px)",
+        sensors: "Capteurs",
+        entities: "Capteurs (vide = détection automatique)",
+        filter: "Filtre de détection (partie de l'ID d'entité)",
+        display: "Affichage",
+        color_values: "Colorer les pourcentages",
+        show_reset: "Afficher la réinitialisation",
+        reset_display: "Format de la réinitialisation",
+        reset_relative: "Compte à rebours",
+        reset_absolute: "Date et heure",
+        reset_both: "Les deux",
+        show_extra_usage: "Afficher l'utilisation supplémentaire",
+        show_api_error: "Afficher les erreurs API",
+        warning_threshold: "Avertissement à partir de (%)",
+        critical_threshold: "Critique à partir de (%)",
+        status_colors: "Couleurs d'état au lieu des couleurs du skin",
+        skin: "Skins",
+        font: "Police",
+        font_auto: "Assortie au skin",
+        font_pixel: "Pixel (intégrée)",
+        font_classic: "Classique",
+        font_theme: "Police du thème",
+        font_monospace: "Monospace",
+        font_custom_opt: "Personnalisée",
+        font_custom: "Police personnalisée (CSS font-family)",
+        analysis: "Rythme, prévision et historique",
+        show_pace: "Repère de rythme",
+        show_forecast: "Prévision",
+        show_forecast_ok: "Afficher « Suffit jusqu'à la réinitialisation »",
+        show_history: "Mini-historique",
+        history_hours: "Historique (heures)",
+        stale_minutes: "Avis de données anciennes après (min, 0 = désactivé)",
+        colors: "Couleurs",
+        color_ok: "Couleur OK",
+        color_warning: "Couleur avertissement",
+        color_critical: "Couleur critique",
+        names: "Noms",
+        actions: "Actions",
+        tap_action: "Action au toucher",
+        hold_action: "Action à l'appui long",
+        double_tap_action: "Action au double toucher",
+      },
+    },
+    es: {
+      title: "Uso de Claude",
+      skin_title: "Claude",
+      usage_word: "Uso",
+      session: "Sesión (5 h)",
+      weekly_all: "Semana · todos los modelos",
+      week: "Semana",
+      s_session: "Sesión",
+      s_weekly: "Semana",
+      used: "usado",
+      resets_in: "Se restablece en {t}",
+      resets_in_short: "Restablece en {t}",
+      resets_now: "Restableciendo",
+      unavailable: "no disponible",
+      no_sensors:
+        "No se encontraron sensores de Claude Usage. Instala la integración Claude Usage o elige sensores en el editor de la tarjeta.",
+      extra_usage: "Uso adicional",
+      st_auth: "La sesión de Claude ha caducado",
+      st_auth_hint: "Vuelve a iniciar sesión en Ajustes → Dispositivos y servicios → Claude Usage.",
+      st_down: "Claude Usage no tiene datos ahora mismo",
+      st_since: "Sin datos desde hace {t}.",
+      st_reason: "La integración informa: {r}",
+      st_open: "Toca para abrir la integración.",
+      credits: "{used} de {limit} créditos",
+      api_error: "Error de API ({v})",
+      fc_hit: "Límite alcanzado {t}",
+      fc_ok: "Alcanza hasta el restablecimiento",
+      fc_reached: "Límite agotado",
+      pace_title: "Ha pasado el {p} % del periodo",
+      stale: "Última actualización hace {t}",
+      d: "d",
+      h: "h",
+      min: "min",
+      ed: {
+        title: "Título",
+        show_title: "Mostrar título",
+        style: "Estilo",
+        style_default: "Estándar (tema)",
+        style_minimal: "Minimal (compacto)",
+        style_terminal: "Terminal",
+        style_retro: "Ventana retro",
+        style_synthwave: "Synthwave",
+        style_paper: "Papel",
+        style_cupertino: "Cupertino",
+        style_shell: "Shell (terminal Linux)",
+        style_material: "Material You",
+        style_matrix: "Matriz de puntos",
+        style_eink: "Tinta electrónica",
+        layout: "Diseño (estilo estándar)",
+        layout_bars: "Barras apiladas",
+        layout_columns: "Barras lado a lado",
+        layout_rings: "Anillos",
+        color_mode: "Colores",
+        color_threshold: "Según umbrales",
+        color_severity: "Según la gravedad de la API",
+        logo: "Logo y título",
+        show_logo: "Mostrar logo",
+        icon: "Icono",
+        logo_url: "URL de imagen (sustituye al icono, p. ej. /local/logo.svg)",
+        logo_color: "Color del icono",
+        logo_size: "Tamaño del logo (px)",
+        sensors: "Sensores",
+        entities: "Sensores (vacío = detección automática)",
+        filter: "Filtro de detección (parte del ID de entidad)",
+        display: "Visualización",
+        color_values: "Colorear porcentajes",
+        show_reset: "Mostrar el restablecimiento",
+        reset_display: "Formato del restablecimiento",
+        reset_relative: "Cuenta atrás",
+        reset_absolute: "Fecha y hora",
+        reset_both: "Ambos",
+        show_extra_usage: "Mostrar uso adicional",
+        show_api_error: "Mostrar errores de API",
+        warning_threshold: "Aviso a partir de (%)",
+        critical_threshold: "Crítico a partir de (%)",
+        status_colors: "Colores de estado en lugar de los del skin",
+        skin: "Skins",
+        font: "Fuente",
+        font_auto: "A juego con el skin",
+        font_pixel: "Píxel (integrada)",
+        font_classic: "Clásica",
+        font_theme: "Fuente del tema",
+        font_monospace: "Monoespaciada",
+        font_custom_opt: "Personalizada",
+        font_custom: "Fuente personalizada (CSS font-family)",
+        analysis: "Ritmo, previsión e historial",
+        show_pace: "Marca de ritmo",
+        show_forecast: "Previsión",
+        show_forecast_ok: "Mostrar «Alcanza hasta el restablecimiento»",
+        show_history: "Mini historial",
+        history_hours: "Historial (horas)",
+        stale_minutes: "Aviso de datos antiguos tras (min, 0 = desactivado)",
+        colors: "Colores",
+        color_ok: "Color OK",
+        color_warning: "Color de aviso",
+        color_critical: "Color crítico",
+        names: "Nombres",
+        actions: "Acciones",
+        tap_action: "Acción al tocar",
+        hold_action: "Acción al mantener pulsado",
+        double_tap_action: "Acción al tocar dos veces",
+      },
+    },
+    nl: {
+      title: "Claude-gebruik",
+      skin_title: "Claude",
+      usage_word: "Gebruik",
+      session: "Sessie (5 u)",
+      weekly_all: "Week · alle modellen",
+      week: "Week",
+      s_session: "Sessie",
+      s_weekly: "Week",
+      used: "gebruikt",
+      resets_in: "Reset over {t}",
+      resets_in_short: "Reset over {t}",
+      resets_now: "Wordt nu gereset",
+      unavailable: "niet beschikbaar",
+      no_sensors:
+        "Geen Claude Usage-sensoren gevonden. Installeer de integratie Claude Usage of kies sensoren in de kaarteditor.",
+      extra_usage: "Extra gebruik",
+      st_auth: "Claude-aanmelding verlopen",
+      st_auth_hint: "Meld je opnieuw aan via Instellingen → Apparaten & diensten → Claude Usage.",
+      st_down: "Claude Usage levert nu geen gegevens",
+      st_since: "Al {t} geen gegevens.",
+      st_reason: "De integratie meldt: {r}",
+      st_open: "Tik om de integratie te openen.",
+      credits: "{used} van {limit} credits",
+      api_error: "API-fout ({v})",
+      fc_hit: "Limiet bereikt {t}",
+      fc_ok: "Genoeg tot de reset",
+      fc_reached: "Limiet opgebruikt",
+      pace_title: "{p} % van de periode is voorbij",
+      stale: "Laatste update {t} geleden",
+      d: "d",
+      h: "u",
+      min: "min",
+      ed: {
+        title: "Titel",
+        show_title: "Titel tonen",
+        style: "Stijl",
+        style_default: "Standaard (thema)",
+        style_minimal: "Minimaal (compact)",
+        style_terminal: "Terminal",
+        style_retro: "Retrovenster",
+        style_synthwave: "Synthwave",
+        style_paper: "Papier",
+        style_cupertino: "Cupertino",
+        style_shell: "Shell (Linux-terminal)",
+        style_material: "Material You",
+        style_matrix: "Puntmatrix",
+        style_eink: "E-ink",
+        layout: "Indeling (standaardstijl)",
+        layout_bars: "Balken onder elkaar",
+        layout_columns: "Balken naast elkaar",
+        layout_rings: "Ringen",
+        color_mode: "Kleuren",
+        color_threshold: "Op drempelwaarden",
+        color_severity: "Op ernst volgens de API",
+        logo: "Logo en titel",
+        show_logo: "Logo tonen",
+        icon: "Pictogram",
+        logo_url: "Afbeeldings-URL (vervangt het pictogram, bijv. /local/logo.svg)",
+        logo_color: "Pictogramkleur",
+        logo_size: "Logogrootte (px)",
+        sensors: "Sensoren",
+        entities: "Sensoren (leeg = automatisch detecteren)",
+        filter: "Filter voor detectie (deel van entiteits-ID)",
+        display: "Weergave",
+        color_values: "Percentages kleuren",
+        show_reset: "Resettijd tonen",
+        reset_display: "Resetnotatie",
+        reset_relative: "Aftellen",
+        reset_absolute: "Datum en tijd",
+        reset_both: "Beide",
+        show_extra_usage: "Extra gebruik tonen",
+        show_api_error: "API-fouten tonen",
+        warning_threshold: "Waarschuwing vanaf (%)",
+        critical_threshold: "Kritiek vanaf (%)",
+        status_colors: "Statuskleuren in plaats van skinkleuren",
+        skin: "Skins",
+        font: "Lettertype",
+        font_auto: "Passend bij de skin",
+        font_pixel: "Pixel (ingebouwd)",
+        font_classic: "Klassiek",
+        font_theme: "Themalettertype",
+        font_monospace: "Monospace",
+        font_custom_opt: "Aangepast",
+        font_custom: "Aangepast lettertype (CSS font-family)",
+        analysis: "Tempo, prognose en verloop",
+        show_pace: "Tempomarkering",
+        show_forecast: "Prognose",
+        show_forecast_ok: "„Genoeg tot de reset” tonen",
+        show_history: "Miniverloop",
+        history_hours: "Verloop (uren)",
+        stale_minutes: "Melding oude gegevens na (min, 0 = uit)",
+        colors: "Kleuren",
+        color_ok: "Kleur OK",
+        color_warning: "Kleur waarschuwing",
+        color_critical: "Kleur kritiek",
+        names: "Namen",
+        actions: "Acties",
+        tap_action: "Actie bij tikken",
+        hold_action: "Actie bij vasthouden",
+        double_tap_action: "Actie bij dubbeltikken",
       },
     },
   };
@@ -379,6 +691,22 @@
     ((hass && ((hass.locale && hass.locale.language) || hass.language)) || "en").split("-")[0];
   const strings = (hass) => STRINGS[langOf(hass)] || STRINGS.en;
   const fmt = (s, vars) => s.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : ""));
+  // Update the DOM in place instead of replacing it, so CSS transitions run and animations keep going.
+  const morph = (from, to) => {
+    if (from.nodeName !== to.nodeName) return from.replaceWith(to);
+    if (from.nodeType === 3) {
+      if (from.nodeValue !== to.nodeValue) from.nodeValue = to.nodeValue;
+      return;
+    }
+    if (from.nodeType === 1) {
+      for (const a of [...from.attributes]) if (!to.hasAttribute(a.name)) from.removeAttribute(a.name);
+      for (const a of [...to.attributes]) if (from.getAttribute(a.name) !== a.value) from.setAttribute(a.name, a.value);
+    }
+    const f = [...from.childNodes];
+    const t = [...to.childNodes];
+    if (f.length !== t.length) return from.replaceChildren(...t);
+    f.forEach((n, i) => morph(n, t[i]));
+  };
   const esc = (v) =>
     String(v == null ? "" : v).replace(/[&<>"']/g, (c) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
@@ -514,9 +842,12 @@
         throw new Error(`style must be one of: ${STYLES.join(", ")}`);
       if (config.entities && !Array.isArray(config.entities))
         throw new Error("entities must be a list");
+      const merged = { ...DEFAULTS, ...config };
+      if (Number(merged.warning_threshold) > Number(merged.critical_threshold))
+        throw new Error("warning_threshold must not be greater than critical_threshold");
       // keys the user actually set: a skin may only override the logo color when it is unset
       this._userConfig = config;
-      this._config = { ...DEFAULTS, ...config };
+      this._config = merged;
       this._sig = "";
       this._html = "";
       this._render();
@@ -617,9 +948,8 @@
       if (v0 == null || v0 > it.value) v0 = start > periodStart ? null : 0;
       if (v0 == null) return null;
       const rate = (it.value - v0) / Math.max(1, now - start); // percent per ms
-      if (rate <= 0) return { text: S.fc_ok, warn: false };
-      const hit = now + (100 - it.value) / rate;
-      if (hit >= reset) return { text: S.fc_ok, warn: false };
+      const hit = rate > 0 ? now + (100 - it.value) / rate : Infinity;
+      if (hit >= reset) return this._config.show_forecast_ok ? { text: S.fc_ok, warn: false } : null;
       return { text: fmt(S.fc_hit, { t: this._fmtAbs(new Date(hit)) }), warn: true };
     }
 
@@ -916,12 +1246,21 @@
       if (this._statusLoading || (this._statusAt && Date.now() - this._statusAt < 60e3)) return;
       this._statusLoading = true;
       const info = { admin: true, reauth: false, reason: null };
+      // several accounts = several config entries: only look at those behind this card's sensors
+      const devs = h.devices || {};
+      const mine = new Set(
+        this._registryIds().flatMap((id) => (devs[h.entities[id].device_id] || {}).config_entries || [])
+      );
+      const own = (entryId) => !mine.size || mine.has(entryId);
       try {
         const entries = (await h.callWS({ type: "config_entries/get", domain: INTEGRATION_DOMAIN })) || [];
-        const bad = entries.find((e) => e.state && e.state !== "loaded");
+        const bad = entries.find((e) => own(e.entry_id) && e.state && e.state !== "loaded");
         info.reason = bad && bad.reason ? String(bad.reason) : null;
         const flows = (await h.callWS({ type: "config_entries/flow/progress" })) || [];
-        info.reauth = flows.some((fl) => fl.handler === INTEGRATION_DOMAIN && fl.context && fl.context.source === "reauth");
+        info.reauth = flows.some(
+          (fl) =>
+            fl.handler === INTEGRATION_DOMAIN && fl.context && fl.context.source === "reauth" && own(fl.context.entry_id)
+        );
       } catch (e) {
         info.admin = false;
       } finally {
@@ -1594,7 +1933,11 @@
       const focused = this.shadowRoot.activeElement;
       const focusId = focused && focused.dataset ? focused.dataset.entity : null;
       this._html = html;
-      this.shadowRoot.innerHTML = html;
+      if (this.shadowRoot.firstChild) {
+        const tpl = document.createElement("template");
+        tpl.innerHTML = html;
+        morph(this.shadowRoot, tpl.content);
+      } else this.shadowRoot.innerHTML = html;
       if (focusId) {
         const el = [...this.shadowRoot.querySelectorAll("[data-entity]")].find(
           (n) => n.dataset.entity === focusId
@@ -2146,6 +2489,7 @@
       ]),
       section(E.analysis, "mdi:chart-timeline-variant", [
         pair(bool("show_pace"), bool("show_forecast")),
+        bool("show_forecast_ok"),
         pair(bool("show_history"), numField("history_hours", 1, 48, "h")),
       ]),
       section(E.actions, "mdi:gesture-tap", [
@@ -2160,7 +2504,7 @@
     "title", "style", "layout", "color_mode", "show_logo", "icon", "logo_url", "logo_color", "logo_size",
     "entities", "filter", "show_title", "show_reset", "reset_display", "show_extra_usage",
     "show_api_error", "warning_threshold", "critical_threshold", "status_colors", "font",
-    "show_pace", "show_forecast", "show_history", "history_hours", "color_values", "stale_minutes",
+    "show_pace", "show_forecast", "show_forecast_ok", "show_history", "history_hours", "color_values", "stale_minutes",
     "color_ok", "color_warning", "color_critical", "tap_action", "hold_action", "double_tap_action",
     "font_custom",
   ];

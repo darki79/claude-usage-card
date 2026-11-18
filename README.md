@@ -18,7 +18,7 @@ The card only reads sensors. The data comes from the **[Claude Usage integration
 - Colors by your own thresholds or by the `severity` the API reports
 - Configurable logo: any MDI icon or your own image
 - Extra usage (only when enabled) and API error hint
-- Visual editor; English, German, French, Spanish and Dutch
+- Visual editor; 15 languages: English, German, French, Spanish, Dutch, Italian, Polish, Portuguese, Swedish, Danish, Norwegian, Finnish, Czech, Romanian and Icelandic
 - Pace marker: shows where you would be with even usage across the period
 - Forecast: when the limit will be reached at the current rate (from HA history)
 - Mini history: sparkline of the last hours

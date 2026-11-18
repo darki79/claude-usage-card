@@ -70,7 +70,7 @@ const hassFor = (lang, dark) => ({
 });
 
 const STYLES = ["default", "minimal", "terminal", "retro", "synthwave", "paper", "cupertino", "shell", "material", "matrix", "eink"];
-const LANGS = [["en", false], ["de", true], ["fr", false], ["es", true], ["nl", false]];
+const LANGS = [["en", false], ["de", true], ["fr", false], ["es", true], ["nl", false], ["it", true], ["pl", false], ["pt", true], ["sv", false], ["da", true], ["nb", false], ["fi", true], ["cs", false], ["ro", true], ["is", false]];
 const cases = [];
 for (const style of STYLES) {
   cases.push({ style });

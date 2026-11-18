@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1
+
+- **Ten new languages**: Italian, Polish, Portuguese, Swedish, Danish, Norwegian (Bokmål), Finnish, Czech, Romanian and Icelandic, for the card and the visual editor. The card now speaks 15 languages and picks the one set in Home Assistant; any other language falls back to English.
+- Translations are new: if a wording sounds off in your language, please open an issue.
+
 ## 1.2.0
 
 - **Smooth updates**: the card now updates in place instead of redrawing itself. Bars and rings glide to new values, and the Material You wave no longer restarts every minute.

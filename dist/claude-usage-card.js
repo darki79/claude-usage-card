@@ -6,7 +6,7 @@
  * License: MIT
  */
 (() => {
-  const CARD_VERSION = "1.2.1";
+  const CARD_VERSION = "1.2.2";
   const CARD_TAG = "claude-usage-card";
   const EDITOR_TAG = "claude-usage-card-editor";
   const INTEGRATION_DOMAIN = "hass_claude_usage";
@@ -1880,6 +1880,7 @@
       this._config = merged;
       this._sig = "";
       this._html = "";
+      this._reported = this._reportedAt = 0;
       this._render();
     }
 
@@ -2341,20 +2342,45 @@
       return this._userConfig || {};
     }
 
+    // last_updated stands still while the values stay the same. last_reported does not,
+    // but Home Assistant never pushes it to the browser, so it has to be requested.
+    async _fetchReported(ids) {
+      if (this._reportedLoading || Date.now() - this._reportedAt < 60e3) return;
+      this._reportedLoading = true;
+      try {
+        const states = await Promise.all(ids.map(async (id) => this._hass.callApi("GET", `states/${id}`)));
+        for (const st of states) {
+          const t = new Date(st.last_reported).getTime();
+          if (Number.isFinite(t)) this._reported = Math.max(this._reported, t);
+        }
+      } catch (e) {
+        // not available: last_updated decides
+      } finally {
+        this._reportedAt = Date.now();
+        this._reportedLoading = false;
+        this._render();
+      }
+    }
+
     _staleHtml(S, cls) {
       const c = this._config;
-      const limit = Number(c.stale_minutes) || 0;
+      const limit = (Number(c.stale_minutes) || 0) * 60e3;
       if (!limit || !this._hass) return "";
       let newest = 0;
+      const ids = [];
       for (const id of this._limitIds()) {
         const st = this._hass.states[id];
         if (!st || BAD.includes(st.state)) continue;
+        ids.push(id);
         const t = new Date(st.last_updated || st.last_changed).getTime();
         if (Number.isFinite(t)) newest = Math.max(newest, t);
       }
       if (!newest) return "";
+      newest = Math.max(newest, this._reported);
       const age = Date.now() - newest;
-      if (age < limit * 60e3) return "";
+      if (age < limit) return "";
+      this._fetchReported(ids);
+      if (this._reportedAt < newest + limit) return ""; // not confirmed yet
       return `<div class="${cls}" title="${esc(this._fmtAbs(new Date(newest)))}"><ha-icon icon="mdi:clock-alert-outline"></ha-icon><span>${esc(
         fmt(S.stale, { t: this._duration(age, S) })
       )}</span></div>`;

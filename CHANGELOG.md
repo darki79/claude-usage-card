@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.2
+
+Just a quick fix: the card no longer claims your data is old when only the values have not changed.
+
+- While no session is running, the sensors can keep the same values for a long time. Home Assistant does not update their timestamp then, so the card showed "Last update 1 h ago" although the integration was still delivering data.
+- The card now also checks when the integration last reported a value (`last_reported`) before it shows the hint. It asks your own Home Assistant, and only when the data looks old.
+
 ## 1.2.1
 
 - **Ten new languages**: Italian, Polish, Portuguese, Swedish, Danish, Norwegian (Bokmål), Finnish, Czech, Romanian and Icelandic, for the card and the visual editor. The card now speaks 15 languages and picks the one set in Home Assistant; any other language falls back to English.

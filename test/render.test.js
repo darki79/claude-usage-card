@@ -172,6 +172,28 @@ cases.push({ style: "default", show_title: false, show_logo: false, show_pace: f
   assert.ok(own.includes("has no data right now"), "own account: no data message");
   assert.ok(!own.includes("Other account") && !own.includes("sign-in expired"), "own account: other account ignored");
 
+  // unchanged values: last_updated is old, the hint only shows when last_reported is old too
+  const ago = (min) => new Date(Date.now() - min * 60e3).toISOString();
+  const old = Object.fromEntries(Object.entries(states).map(([id, s]) => [id, { ...s, last_updated: ago(120) }]));
+  const stale = async (hass) => {
+    const card = new Card();
+    card.setConfig({});
+    card.hass = { ...hassFor("en", false), ...hass };
+    assert.ok(!card.shadowRoot.innerHTML.includes("Last update"), "stale: no hint before last_reported is checked");
+    for (let i = 0; i < 3; i++) await new Promise((r) => setTimeout(r, 0));
+    card.disconnectedCallback();
+    return (card.shadowRoot.innerHTML.match(/Last update [^<]*/) || [""])[0];
+  };
+  const asked = [];
+  const api = (min) => async (method, path) => (asked.push(`${method} ${path}`), { last_reported: ago(min) });
+  assert.strictEqual(await stale({ callApi: api(5) }), "", "stale: fresh data, nothing to ask");
+  assert.deepStrictEqual(asked, [], "stale: no request while last_updated is fresh");
+  assert.strictEqual(await stale({ states: old, callApi: api(5) }), "", "stale: reported recently");
+  assert.deepStrictEqual(asked, ids.map((id) => `GET states/${id}`), "stale: asks once per limit sensor");
+  assert.ok((await stale({ states: old, callApi: api(90) })).includes("1 h 30 min"), "stale: age from last_reported");
+  for (const callApi of [undefined, async () => { throw new Error("404"); }, async () => ({})])
+    assert.ok((await stale({ states: old, callApi })).includes("2 h 0 min"), "stale: falls back to last_updated");
+
   // every language has exactly the keys of English
   const src = require("node:fs").readFileSync(require.resolve("../dist/claude-usage-card.js"), "utf8");
   const STRINGS = eval(`(${src.match(/const STRINGS = (\{[\s\S]*?\n  \});/)[1]})`);
